@@ -1,0 +1,4184 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Бібліотека Біблії v2.0</title>
+    <meta property="og:image" content="ico3.jpg">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23667eea'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial'%3E📖%3C/text%3E%3Ctext x='85' y='25' font-size='30' text-anchor='middle' fill='%23f093fb' font-family='Arial'%3E2%3C/text%3E%3C/svg%3E">
+    <style>
+:root {
+    --blue: #1a56db;
+    --blue-dark: #1342b0;
+    --blue-light: #e8f0fe;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-700: #334155;
+    --gray-900: #0f172a;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+    --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --version-badge: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+    /* Маппинг для основных элементов */
+    --bg: var(--gray-100);
+    --surface: #ffffff;
+    --border: var(--gray-200);
+    --text: var(--gray-900);
+    --accent: var(--blue);
+    --mark: #fef9c3;
+    --mark-text: #713f12;
+    --sidebar-bg: #ffffff;
+    --sidebar-text: var(--gray-700);
+}
+
+/* ─── ПОЛНОЭКРАННЫЙ РЕЖИМ КОЛОНКИ ─── */
+.expand-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--gray-500);
+    padding: 2px 5px;
+    border-radius: 4px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    line-height: 1;
+}
+.expand-btn:hover { 
+    color: var(--blue); 
+    background: var(--gray-100);
+    transform: scale(1.1);
+}
+
+.column.fullscreen .close-col { display: none; }
+
+.fullscreen-close {
+    display: none;
+    position: fixed;
+    top: 12px;
+    right: 20px;
+    z-index: 200;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    letter-spacing: 0.03em;
+    transition: background 0.15s;
+}
+.fullscreen-close:hover { background: #b91c1c; }
+.column.fullscreen ~ .fullscreen-close,
+.fullscreen-close.visible { display: block; }
+
+.column.fullscreen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 100;
+    border-radius: 0;
+    min-width: unset;
+    width: 100% !important;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.column.fullscreen .close-col {
+    display: none;
+}
+
+/* ─── ТЁМНАЯ ТЕМА ─── */
+body.dark {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --gray-50: #1e293b;
+    --gray-100: #1a2540;
+    --gray-200: #2d3f5a;
+    --gray-300: #3d5070;
+    --gray-400: #7a90b0;
+    --gray-500: #94a3b8;
+    --gray-700: #cbd5e1;
+    --gray-900: #f1f5f9;
+    --sidebar-bg: #1e293b;
+    --sidebar-text: #cbd5e1;
+    --mark: #3d3000;
+    --mark-text: #fde68a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.dark .expand-btn:hover {
+    background: var(--gray-200);
+}
+
+body.dark .topbar,
+body.dark .sidebar,
+body.dark .sidebar-header,
+body.dark .column,
+body.dark .col-header,
+body.dark .nav-group,
+body.dark .fav-link,
+body.dark .nav-btn,
+body.dark .search-area,
+body.dark .font-size-control,
+body.dark .font-btn {
+    background: var(--surface);
+    border-color: var(--gray-200);
+    color: var(--gray-900);
+}
+
+body.dark .search-area input {
+    background: var(--surface);
+    color: var(--gray-900);
+}
+
+body.dark select {
+    color: var(--gray-900);
+    background: transparent;
+}
+
+body.dark .verse-row.highlighted {
+    background: #1e3a5f;
+    border-left-color: var(--blue);
+}
+
+body.dark .verse-row:hover {
+    background: #243450;
+}
+
+body.dark .db-item { border-bottom-color: #1e293b; }
+body.dark .db-item:hover { 
+    background: #1e293b;
+    transform: translateX(4px);
+}
+body.dark .db-item.loaded { background: rgba(99,102,241,0.12); }
+body.dark .db-name-main { color: #cbd5e1; }
+body.dark .db-item.loaded .db-name-main { color: #93c5fd; }
+body.dark .db-description-sub { color: #475569; }
+
+body.dark .sidebar-section {
+    color: #7a90b0;
+}
+
+body.dark .v-text {
+    color: #d1dae8;
+}
+
+/* Переключатель */
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--gray-300);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 10px;
+    line-height: 1;
+    transition: all 0.2s ease;
+    color: var(--gray-700);
+}
+
+.theme-toggle:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+    transform: scale(1.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 14px;
+}
+
+/* ─── БОКОВАЯ ПАНЕЛЬ (SIDEBAR) ─── */
+.sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--gray-200);
+    box-shadow: var(--shadow);
+    transition: width 0.25s ease, opacity 0.25s ease, transform 0.28s cubic-bezier(.4,0,.2,1);
+}
+.sidebar.collapsed {
+    width: 0;
+    opacity: 0;
+    border-right: none;
+    pointer-events: none;
+}
+
+/* Кнопка схлопывания сайдбара — только десктоп */
+.sidebar-collapse-btn {
+    display: flex;
+    align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--gray-500);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: 0.15s;
+    flex-shrink: 0;
+}
+.sidebar-collapse-btn:hover { background: var(--gray-100); color: var(--gray-800); transform: scale(1.1); }
+.sidebar-collapse-btn.collapsed {
+    transform: scaleX(-1);
+    position: fixed;
+    left: 8px;
+    top: 11px;
+    z-index: 50;
+    background: var(--surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Отступ для topbar когда панель свёрнута */
+.sidebar.collapsed ~ .content .topbar { padding-left: 44px; }
+
+.sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--sidebar-bg);
+}
+
+.sidebar-header h2 {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 2px;
+}
+
+.version-badge {
+    background: var(--gradient-secondary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 10px rgba(245, 87, 108, 0.3);
+    animation: pulse 2s infinite;
+    -webkit-text-fill-color: white;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; transform: scale(1.05); }
+    100% { opacity: 1; }
+}
+
+.sidebar-header .sub {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gray-400);
+}
+
+.sidebar-section {
+    padding: 10px 14px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.import-btn {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+    background: var(--blue-light);
+    border: 1px solid rgba(26,86,219,0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    cursor: pointer;
+    text-transform: none;
+    letter-spacing: 0;
+    transition: 0.15s;
+    white-space: nowrap;
+}
+.import-btn:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+body.dark .import-btn { background: #1e3a5f; border-color: #2d5a9e; color: #93c5fd; }
+body.dark .import-btn:hover { background: var(--blue); color: #fff; }
+
+/* Локальные переводы — зелёная точка */
+.db-item-local .db-dot { background: #16a34a; }
+.db-item-local.loaded .db-dot { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.2); }
+
+.db-list {
+    overflow-y: auto;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--gray-200);
+    max-height: 45%;
+}
+
+.cache-badge {
+    font-size: 11px;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.db-item {
+    padding: 9px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px solid var(--gray-100);
+}
+.db-item:last-child { border-bottom: none; }
+.db-item:hover { 
+    background: var(--gray-50);
+    transform: translateX(4px);
+}
+.db-item.loaded { background: rgba(26,86,219,0.07); }
+
+/* Индикатор точка */
+.db-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gray-300);
+    flex-shrink: 0;
+    transition: 0.2s;
+}
+.db-item.loaded .db-dot {
+    background: var(--blue);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.2);
+}
+
+/* Двухстрочный текст */
+.db-item-text {
+    flex: 1;
+    min-width: 0;
+}
+.db-name-main {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    line-height: 1.3;
+}
+.db-item.loaded .db-name-main { color: var(--blue); }
+
+.db-description-sub {
+    font-size: 11px;
+    color: var(--gray-400);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+    line-height: 1.3;
+}
+
+/* ── ЗАКЛАДКИ (ТЕГИ) ── */
+.fav-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: flex-start;
+}
+
+/* ─── ЗАМЕТКИ К ЗАКЛАДКАМ ─── */
+.fav-link {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--gray-200);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow);
+    position: relative;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+}
+
+.fav-link-top {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.fav-note-text {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--gray-500);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.fav-note-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--gray-400);
+    padding: 0 2px;
+    transition: 0.15s;
+    line-height: 1;
+}
+.fav-note-btn:hover { color: var(--blue); }
+
+/* Модальное окно заметки */
+.note-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.note-modal-overlay.open { display: flex; }
+
+.note-modal {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    width: 340px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: modalSlideUp 0.3s ease;
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+body.dark .note-modal {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+.note-modal h3 {
+    font-size: 16px;
+    font-weight: 700;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.note-modal textarea {
+    border: 2px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    resize: none;
+    height: 100px;
+    outline: none;
+    color: var(--gray-900);
+    background: var(--gray-50);
+    transition: all 0.2s;
+}
+
+body.dark .note-modal textarea {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+.note-modal textarea:focus { 
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+}
+
+.note-modal-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.note-modal-btns button {
+    padding: 8px 20px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.15s;
+}
+
+.note-save-btn { 
+    background: var(--gradient);
+    color: #fff; 
+}
+.note-save-btn:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+.note-cancel-btn { 
+    background: var(--gray-100); 
+    color: var(--gray-700); 
+}
+.note-cancel-btn:hover { 
+    background: var(--gray-200);
+    transform: translateY(-1px);
+}
+
+.fav-link:hover {
+    background: var(--blue-light);
+    border-color: rgba(26, 86, 219, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26,86,219,0.15);
+}
+
+.fav-del {
+    margin-left: 6px;
+    color: var(--gray-400);
+    font-size: 14px;
+    transition: 0.15s;
+}
+
+.fav-del:hover { color: var(--red); }
+
+/* ─── ОСНОВНОЙ КОНТЕНТ (MAIN) ─── */
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.topbar {
+    height: 48px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+    box-shadow: var(--shadow);
+    z-index: 10;
+}
+
+.nav-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--gray-100);
+    border-radius: var(--radius);
+    padding: 4px 6px;
+    border: 1px solid var(--gray-200);
+}
+
+select {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-900);
+    padding: 2px 4px;
+    cursor: pointer;
+}
+
+/* ОБНОВЛЕНО: Жирные и заметные стрелки */
+.nav-btn {
+    background: #ffffff;
+    border: 1.5px solid var(--gray-300);
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--gray-700);
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow);
+    line-height: 1;
+}
+
+.nav-btn:hover {
+    background: var(--gradient);
+    color: #ffffff;
+    border-color: transparent;
+    transform: scale(1.05);
+}
+
+.nav-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.3);
+}
+
+.search-area {
+    display: flex;
+    margin-left: auto;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    background: #ffffff;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.search-area input {
+    border: none;
+    outline: none;
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 200px;
+}
+
+.font-size-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 3px 6px;
+}
+
+.font-btn {
+    background: #ffffff;
+    border: 1px solid var(--gray-300);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gray-700);
+    padding: 3px 7px;
+    line-height: 1;
+    transition: all 0.15s ease;
+}
+
+.font-btn:hover {
+    background: var(--gradient);
+    color: #ffffff;
+    border-color: transparent;
+}
+
+#font-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-500);
+    min-width: 30px;
+    text-align: center;
+}
+
+.search-btn {
+    background: var(--gradient);
+    color: #ffffff;
+    border: none;
+    padding: 0 16px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+.search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+
+/* ─── СЕТКА СРАВНЕНИЯ (GRID) ─── */
+#compare-grid {
+    flex: 1;
+    display: flex;
+    overflow-x: auto;
+    background: var(--gray-100);
+    gap: 16px;
+    padding: 16px;
+    padding-bottom: 20px;
+    margin-bottom: 8px;
+}
+
+/* Горизонтальный скроллбар — заметный и с отступом */
+#compare-grid::-webkit-scrollbar {
+    height: 10px;
+}
+
+#compare-grid::-webkit-scrollbar-track {
+    background: var(--gray-200);
+    border-radius: 10px;
+    margin: 0 16px;
+}
+
+#compare-grid::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 10px;
+    border: 2px solid var(--gray-200);
+    transition: background 0.2s;
+}
+
+#compare-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--gradient);
+}
+
+.column {
+    min-width: 420px;
+    flex: 1;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    border: 1px solid var(--gray-200);
+    animation: fadeInUp 0.3s ease both;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.col-header {
+    padding: 5px 12px;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid transparent;
+    border-image: var(--gradient);
+    border-image-slice: 1;
+    min-height: 0;
+}
+
+.col-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.col-subtitle {
+    font-size: 11px;
+    color: var(--gray-400);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+    max-width: 180px;
+}
+body.dark .col-subtitle { color: #475569; }
+
+.close-col {
+    cursor: pointer;
+    color: var(--gray-500);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    transition: 0.15s;
+}
+
+.close-col:hover { color: var(--red); }
+
+/* ─── ТЕКСТ ПИСАНИЯ ─── */
+.verses {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.verse-row {
+    display: flex;
+    gap: 12px;
+    padding: 6px 8px;
+    border-radius: var(--radius);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 2px;
+    align-items: flex-start;
+    position: relative;
+}
+
+.verse-row:hover { 
+    background: var(--gray-50);
+    transform: translateX(2px);
+}
+.verse-row.highlighted {
+    background: #eef3fd;
+    border-left: 2px solid var(--blue);
+    padding-left: 6px;
+}
+
+/* Кнопки действий — появляются при hover на десктопе */
+.verse-actions {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-top: 3px;
+}
+.verse-row:hover .verse-actions { display: flex; }
+
+.verse-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-400);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: scale(0.85);
+}
+.verse-row:hover .verse-action-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+.verse-action-btn:hover { 
+    background: var(--gray-200); 
+    color: var(--gray-700);
+    transform: scale(1.1) !important;
+}
+.verse-action-btn.ai-ask:hover { background: #eef2ff; color: #6366f1; }
+
+/* Toast уведомление */
+.copy-toast {
+    position: fixed;
+    bottom: 80px; left: 50%; transform: translateX(-50%) translateY(10px);
+    background: var(--gradient);
+    color: #fff;
+    padding: 10px 24px; border-radius: 30px;
+    font-size: 14px; font-weight: 600;
+    opacity: 0; transition: all 0.25s;
+    z-index: 500; pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(102,126,234,0.4);
+}
+.copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Мобильный bottom sheet для действий */
+.verse-sheet-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 350;
+    backdrop-filter: blur(4px);
+}
+.verse-sheet-overlay.open { display: block; }
+
+.verse-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    padding: 0 0 30px;
+    z-index: 351;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
+}
+.verse-sheet.open { transform: translateY(0); }
+
+.verse-sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--gray-300);
+    border-radius: 4px;
+    margin: 12px auto 16px;
+}
+.verse-sheet-ref {
+    padding: 0 20px 12px;
+    font-size: 12px; font-weight: 700;
+    color: var(--gray-400);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--gray-100);
+}
+.verse-sheet-text {
+    padding: 12px 20px;
+    font-size: 14px; line-height: 1.6;
+    color: var(--gray-700);
+    max-height: 100px; overflow-y: auto;
+    border-bottom: 1px solid var(--gray-100);
+}
+.verse-sheet-actions { padding: 8px 12px 0; display: flex; flex-direction: column; gap: 2px; }
+.verse-sheet-btn {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 12px;
+    border: none; background: none;
+    border-radius: 10px;
+    cursor: pointer; width: 100%; text-align: left;
+    font-size: 15px; font-weight: 500;
+    color: var(--gray-700);
+    transition: all 0.15s;
+}
+.verse-sheet-btn:hover { 
+    background: var(--gray-50);
+    transform: translateX(4px);
+}
+.verse-sheet-btn .btn-icon { font-size: 20px; width: 32px; text-align: center; }
+body.dark .verse-sheet { background: #1e293b; }
+body.dark .verse-sheet-ref { color: #475569; border-color: #334155; }
+body.dark .verse-sheet-text { color: #cbd5e1; border-color: #334155; }
+body.dark .verse-sheet-btn { color: #e2e8f0; }
+body.dark .verse-sheet-btn:hover { background: #0f172a; }
+
+.v-num {
+    min-width: 32px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-400);
+    padding-top: 6px;
+    user-select: none;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.v-text {
+    font-family: 'IBM Plex Serif', serif;
+    font-size: 17px;
+    color: var(--gray-900);
+    flex: 1;
+    line-height: 1.85;
+    letter-spacing: 0.01em;
+}
+
+mark {
+    background: var(--mark);
+    color: var(--mark-text);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-400);
+}
+
+/* ─── АНИМАЦИИ ─── */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.db-item.loading .db-dot {
+    border: 2px solid var(--gray-300);
+    border-top-color: var(--blue);
+    background: transparent !important;
+    box-shadow: none !important;
+    animation: spin 0.7s linear infinite, pulse-dot 1s ease infinite;
+    width: 10px;
+    height: 10px;
+}
+
+.db-item.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Прогресс в шапке сайдбара */
+.loading-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 300% 100%;
+    animation: gradient-shift 3s ease infinite;
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+    display: none;
+}
+.loading-bar.active { display: block; }
+.loading-bar-fill {
+    height: 100%;
+    background: rgba(255,255,255,0.3);
+    backdrop-filter: blur(2px);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* ─── ИИ ПАНЕЛЬ ─── */
+.ai-btn {
+    background: var(--gradient);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 6px rgba(99,102,241,0.4);
+}
+.ai-btn:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 15px rgba(99,102,241,0.6);
+}
+
+.ai-panel {
+    position: fixed;
+    right: 0; top: 0; bottom: 0;
+    width: 380px;
+    background: #ffffff;
+    border-left: 1px solid var(--gray-200);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 150;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.ai-panel.open { transform: translateX(0); }
+
+body.dark .ai-panel {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.ai-panel-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--gradient);
+    color: #fff;
+}
+.ai-panel-header h3 { 
+    font-size: 14px; 
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ai-panel-header h3::before {
+    content: "✦";
+    font-size: 16px;
+}
+
+.ai-close-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    width: 26px; height: 26px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.15s;
+}
+.ai-close-btn:hover { background: rgba(255,255,255,0.35); transform: scale(1.1); }
+
+.ai-actions {
+    padding: 12px;
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--gray-200);
+}
+.ai-action-btn {
+    flex: 1;
+    padding: 8px 6px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--gray-200);
+    background: var(--gray-50);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    line-height: 1.3;
+}
+.ai-action-btn:hover, .ai-action-btn.active {
+    border-color: #6366f1;
+    background: #eef2ff;
+    color: #4f46e5;
+    transform: translateY(-1px);
+}
+body.dark .ai-action-btn {
+    background: #0f172a;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+body.dark .ai-action-btn:hover, body.dark .ai-action-btn.active {
+    border-color: #6366f1;
+    background: #1e1b4b;
+    color: #a5b4fc;
+}
+
+.ai-context {
+    padding: 10px 12px;
+    font-size: 11px;
+    color: var(--gray-500);
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+body.dark .ai-context { background: #0f172a; }
+
+.ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ai-message {
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    animation: fadeInUp 0.2s ease;
+}
+.ai-message.user {
+    background: #eef2ff;
+    color: #3730a3;
+    align-self: flex-end;
+    max-width: 90%;
+}
+body.dark .ai-message.user { background: #1e1b4b; color: #a5b4fc; }
+
+.ai-message.assistant {
+    background: var(--gray-100);
+    color: var(--gray-900);
+    align-self: flex-start;
+    max-width: 100%;
+}
+body.dark .ai-message.assistant { background: #0f172a; color: #e2e8f0; }
+
+.ai-message.thinking {
+    color: var(--gray-400);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ai-dots span {
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #6366f1;
+    animation: bounce 1s infinite;
+}
+.ai-dots span:nth-child(2) { animation-delay: 0.15s; }
+.ai-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-5px); opacity: 1; }
+}
+
+.ai-input-area {
+    padding: 12px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: 8px;
+}
+.ai-input-area input {
+    flex: 1;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    font-size: 13px;
+    outline: none;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    transition: all 0.2s;
+}
+body.dark .ai-input-area input { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+.ai-input-area input:focus { 
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+.ai-send-btn {
+    background: var(--gradient);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 0 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.15s;
+}
+.ai-send-btn:hover { 
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+.ai-send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── МОДАЛЬНОЕ ОКНО НАСТРОЕК ─── */
+.settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 400;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.settings-overlay.open { display: flex; }
+.settings-modal {
+    background: var(--surface);
+    border-radius: 24px;
+    width: 480px;
+    max-width: calc(100vw - 32px);
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideUp 0.3s ease;
+}
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky; top: 0;
+    background: var(--surface);
+    z-index: 1;
+    border-radius: 24px 24px 0 0;
+}
+.settings-header h2 { 
+    font-size: 18px; 
+    font-weight: 700;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.settings-close-btn {
+    background: var(--gray-100); border: none;
+    width: 30px; height: 30px; border-radius: 50%;
+    cursor: pointer; font-size: 16px; color: var(--gray-500);
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.15s;
+}
+.settings-close-btn:hover { 
+    background: var(--gray-200); 
+    color: var(--gray-900);
+    transform: rotate(90deg);
+}
+.settings-body { padding: 12px 0 20px; display: flex; flex-direction: column; gap: 12px; }
+
+.settings-group {
+    margin: 0 16px;
+    border: 1px solid var(--gray-200);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface);
+}
+.settings-group-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-500);
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+}
+.settings-group-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.settings-divider {
+    height: 1px;
+    background: var(--gray-100);
+    margin: 0 16px;
+}
+body.dark .settings-group { border-color: #334155; background: #1e293b; }
+body.dark .settings-group-title { background: #0f172a; border-color: #334155; color: #64748b; }
+body.dark .settings-divider { background: #334155; }
+.settings-section {
+    padding: 14px 20px 4px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--gray-400);
+}
+.settings-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px; gap: 12px;
+    transition: background 0.15s;
+}
+.settings-row:hover { background: var(--gray-50); }
+.settings-row-label strong { display: block; font-size: 14px; font-weight: 600; color: var(--gray-900); margin-bottom: 2px; }
+.settings-row-label span { font-size: 12px; color: var(--gray-400); line-height: 1.4; }
+/* Toggle */
+.toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--gray-300); border-radius: 24px;
+    cursor: pointer; transition: 0.2s;
+}
+.toggle-slider:before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%;
+    transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle input:checked + .toggle-slider { background: var(--gradient); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+/* Font stepper */
+.font-stepper { display: flex; align-items: center; gap: 8px; }
+.font-stepper button {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid var(--gray-200); background: var(--gray-100);
+    font-size: 18px; font-weight: 700; cursor: pointer;
+    color: var(--gray-700); display: flex; align-items: center; justify-content: center;
+    transition: 0.15s;
+}
+.font-stepper button:hover { 
+    background: var(--gradient);
+    border-color: transparent;
+    color: #fff;
+}
+.font-stepper span { min-width: 44px; text-align: center; font-size: 14px; font-weight: 700; color: var(--gray-700); }
+/* Theme picker */
+.theme-picker { display: flex; gap: 4px; background: var(--gray-100); border-radius: 10px; padding: 3px; }
+.theme-picker button {
+    padding: 5px 12px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    background: none; color: var(--gray-500); transition: 0.15s;
+}
+.theme-picker button.active { 
+    background: var(--surface); 
+    color: var(--gray-900); 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+/* Action button */
+.settings-action-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 8px;
+    border: 1px solid var(--gray-200); background: var(--gray-50);
+    color: var(--gray-700); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: 0.15s; white-space: nowrap;
+}
+.settings-action-btn:hover { 
+    border-color: var(--red); 
+    color: var(--red); 
+    background: var(--red-light);
+    transform: translateY(-1px);
+}
+/* Gear button */
+.settings-btn {
+    background: none; border: 1px solid var(--gray-200);
+    border-radius: 8px; width: 34px; height: 34px;
+    cursor: pointer; font-size: 17px; color: var(--gray-500);
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.15s;
+}
+.settings-btn:hover { 
+    background: var(--gray-100); 
+    color: var(--gray-900);
+    transform: rotate(45deg);
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--gray-100); }
+::-webkit-scrollbar-thumb { 
+    background: var(--gray-300); 
+    border-radius: 10px; 
+    transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gradient); }
+
+/* ─── УТИЛИТЫ (замена inline-стилей) ─── */
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-center  { display: flex; align-items: center; gap: 6px; }
+.flex-shrink0 { flex-shrink: 0; }
+.col-header-left  { min-width: 0; flex: 1; overflow: hidden; }
+.col-header-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+/* AI панель — кнопки заголовка */
+.ai-header-actions { display: flex; gap: 6px; align-items: center; }
+.ai-clear-btn {
+    background: rgba(255,255,255,0.15); border: none; color: #fff;
+    border-radius: 6px; width: 26px; height: 26px;
+    cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.15s;
+}
+.ai-clear-btn:hover { 
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.1);
+}
+
+/* Мобильная панель шрифта */
+.font-bar {
+    display: none;
+    position: fixed; bottom: 52px; left: 0; right: 0; z-index: 99;
+    background: var(--surface);
+    border-top: 1px solid var(--gray-200);
+    padding: 10px 20px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    align-items: center; justify-content: center; gap: 20px;
+}
+.font-bar.open { display: flex; }
+.font-bar-btn {
+    background: var(--gradient);
+    border: none;
+    border-radius: 8px; width: 44px; height: 44px;
+    font-size: 22px; font-weight: 700; cursor: pointer; 
+    color: #fff;
+    transition: 0.15s;
+}
+.font-bar-btn:hover { transform: scale(1.1); }
+.font-bar-label {
+    font-size: 16px; font-weight: 700;
+    color: var(--gray-700); min-width: 48px; text-align: center;
+}
+.font-bar-close {
+    background: none; border: none; font-size: 20px;
+    color: var(--gray-400); cursor: pointer; padding: 0 6px;
+}
+
+/* Мобильная строка поиска */
+.search-bar-mobile {
+    display: none;
+    position: fixed; bottom: 52px; left: 0; right: 0; z-index: 99;
+    background: var(--surface);
+    border-top: 1px solid var(--gray-200);
+    padding: 10px 12px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    align-items: center; gap: 8px;
+}
+.search-bar-mobile.open { display: flex; }
+.search-bar-input {
+    flex: 1; border: 1px solid var(--gray-200); border-radius: 8px;
+    padding: 9px 12px; font-size: 14px; background: var(--surface);
+    color: var(--text); outline: none;
+}
+.search-bar-input:focus { 
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+}
+.search-bar-submit {
+    background: var(--gradient); color: #fff; border: none;
+    border-radius: 8px; padding: 9px 14px; font-size: 14px;
+    font-weight: 600; cursor: pointer;
+}
+.search-bar-close {
+    background: var(--gray-100); border: 1px solid var(--gray-200);
+    border-radius: 8px; padding: 9px 12px; font-size: 14px; cursor: pointer;
+}
+
+/* Иконки групп настроек */
+.settings-icon-ai   { background: #eef2ff; color: #6366f1; }
+.settings-icon-ui   { background: #f0fdf4; color: #16a34a; }
+.settings-icon-data { background: #fff7ed; color: #ea580c; }
+
+/* Карточки render */
+.render-error { padding: 20px; color: var(--red); }
+.render-empty { padding: 20px; color: var(--gray-400); }
+
+/* Баннер несоответствия нумерации книг */
+.mismatch-banner {
+    margin: 6px 10px 0;
+    padding: 7px 10px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #9a3412;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+body.dark .mismatch-banner {
+    background: #431407;
+    border-color: #7c2d12;
+    color: #fdba74;
+}
+
+/* Книга відсутня в перекладі */
+.render-missing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    height: 100%;
+    gap: 8px;
+    opacity: 0.6;
+}
+.render-missing-icon { font-size: 36px; }
+.render-missing-title { font-size: 14px; font-weight: 700; color: var(--gray-500); }
+.render-missing-text { font-size: 12px; color: var(--gray-400); line-height: 1.5; }
+
+/* Книга недоступна в некоторых переводах — серый вариант в select */
+option.book-unavailable { color: var(--gray-400); }
+.verse-num-col { color: var(--gray-400); font-weight: 400; }
+.verse-text-flex { flex: 1; text-align: center; }
+.verse-close-btn { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--gray-400); }
+
+.sidebar-footer {
+    padding: 8px 12px;
+    border-top: 1px solid var(--gray-200);
+    margin-top: auto;
+    flex-shrink: 0;
+}
+.sidebar-cache-btn {
+    width: 100%; padding: 7px; border-radius: 8px;
+    border: 1px solid var(--gray-200); background: var(--gray-50);
+    color: var(--gray-500); font-size: 12px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px; transition: 0.15s;
+}
+.sidebar-cache-btn:hover { 
+    background: var(--red-light); 
+    color: var(--red); 
+    border-color: var(--red);
+    transform: translateY(-1px);
+}
+
+/* ─── СПРАВКА ─── */
+.settings-help-btn {
+    font-size: 12px; font-weight: 600;
+    color: var(--blue); background: var(--blue-light);
+    border: 1px solid rgba(26,86,219,0.2);
+    border-radius: 6px; padding: 4px 10px;
+    cursor: pointer; transition: 0.15s;
+}
+.settings-help-btn:hover { 
+    background: var(--gradient); 
+    color: #fff;
+    border-color: transparent;
+}
+
+.help-modal { max-width: 520px; }
+
+.help-tabs {
+    display: flex; gap: 4px;
+    padding: 12px 16px 0;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--surface);
+    flex-shrink: 0;
+}
+.help-tab {
+    padding: 8px 16px; border: none; background: none;
+    font-size: 13px; font-weight: 600; color: var(--gray-500);
+    cursor: pointer; border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: 0.15s;
+}
+.help-tab:hover { color: var(--gray-700); }
+.help-tab.active { 
+    color: var(--blue); 
+    border-bottom-color: var(--blue); 
+    background: var(--blue-light);
+}
+
+.help-body {
+    overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 16px;
+    flex: 1; min-height: 0;
+}
+.help-section { display: flex; flex-direction: column; gap: 8px; }
+.help-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--gray-400);
+    padding-bottom: 4px; border-bottom: 1px solid var(--gray-100);
+}
+.help-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 13px; line-height: 1.5; color: var(--gray-700);
+}
+.help-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; margin-top: 1px; }
+.help-step {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 13px; line-height: 1.5; color: var(--gray-700);
+}
+.help-step-num {
+    min-width: 22px; height: 22px; border-radius: 50%;
+    background: var(--blue-light); color: var(--blue);
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+}
+
+body.dark .help-tabs { background: #1e293b; border-color: #334155; }
+body.dark .help-tab { color: #64748b; }
+body.dark .help-tab:hover { color: #cbd5e1; }
+body.dark .help-tab.active { color: #93c5fd; background: #1e3a5f; }
+body.dark .help-section-title { color: #475569; border-color: #334155; }
+body.dark .help-item, body.dark .help-step { color: #cbd5e1; }
+body.dark .help-step-num { background: #1e3a5f; color: #93c5fd; }
+
+/* ─── МОБИЛЬНАЯ АДАПТАЦИЯ ─── */
+@media (max-width: 768px) {
+
+    /* ── OVERLAY для sidebar ── */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 290;
+        backdrop-filter: blur(4px);
+    }
+    .sidebar-overlay.open { display: block; }
+
+    /* ── SIDEBAR: выдвижная панель ── */
+    body {
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        width: 82vw;
+        max-width: 320px;
+        z-index: 300;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+        border-right: 1px solid var(--gray-200);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* ── CONTENT: занимает весь экран ── */
+    .content {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+    }
+
+    /* ── TOPBAR: прилипает к верху, всегда видим ── */
+    .topbar {
+        height: 50px;
+        min-height: 50px;
+        flex-wrap: nowrap;
+        padding: 0 6px;
+        gap: 4px;
+        flex-shrink: 0;
+        overflow: visible;
+        z-index: 20;
+        position: relative;
+    }
+
+    /* Скрываем второстепенное: поиск, шрифт, тема, ИИ — они в нижней панели */
+    .topbar .search-area,
+    .topbar .font-size-control,
+    .topbar .theme-toggle,
+    .topbar .ai-btn,
+    .topbar .settings-btn {
+        display: none !important;
+    }
+
+    /* Кнопка закрытия sidebar */
+    .sidebar-close-btn {
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: var(--gray-400);
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 6px;
+        line-height: 1;
+        transition: color 0.15s, background 0.15s;
+    }
+    .sidebar-close-btn:hover { color: var(--red); background: var(--gray-100); }
+
+    /* Кнопка-гамбургер */
+    .menu-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: 1.5px solid var(--gray-300);
+        border-radius: 7px;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        cursor: pointer;
+        font-size: 22px;
+        color: var(--gray-700);
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+    .menu-btn:active { 
+        background: var(--gradient);
+        color: #fff;
+        border-color: transparent;
+    }
+
+    /* nav-group занимает всё доступное место */
+    .nav-group {
+        flex: 1;
+        min-width: 0;
+        padding: 4px 6px;
+        gap: 4px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Выбор книги — максимально широкий */
+    #book-select {
+        flex: 1;
+        min-width: 0;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    /* Выбор главы — компактный */
+    #chapter-select {
+        width: 54px;
+        min-width: 54px;
+        flex-shrink: 0;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    /* Выбор стиха — компактный, только на мобиле */
+    #verse-select {
+        width: 48px;
+        min-width: 48px;
+        flex-shrink: 0;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    /* Кнопки ‹ › — крупнее для пальца */
+    .nav-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        font-size: 22px;
+        font-weight: 900;
+        flex-shrink: 0;
+    }
+
+    /* ── GRID: карусель — один перевод на весь экран ── */
+    #compare-grid {
+        flex-direction: row;
+        overflow: hidden;
+        padding: 0;
+        gap: 0;
+        flex: 1;
+        min-height: 0;
+        position: relative;
+        margin-bottom: 52px;
+    }
+
+    /* Внутренний трек карусели */
+    #carousel-track {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        transition: transform 0.32s cubic-bezier(.4,0,.2,1);
+    }
+
+    .column {
+        min-width: 100vw;
+        width: 100vw;
+        flex: none;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        animation: none;
+    }
+
+    .verses {
+        padding: 12px 16px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .column.fullscreen {
+        min-width: 100vw;
+    }
+
+    /* Индикатор текущего перевода (точки) */
+    #carousel-dots {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 0 4px;
+        flex-shrink: 0;
+        background: var(--bg);
+    }
+    .carousel-dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: var(--gray-300);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .carousel-dot.active {
+        background: var(--gradient);
+        width: 18px;
+        border-radius: 4px;
+    }
+
+    /* Название текущего перевода в заголовке */
+    #mob-translation-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--blue);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 2px 8px;
+        flex-shrink: 0;
+        background: var(--surface);
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .v-text {
+        font-size: 18px;
+        line-height: 1.8;
+    }
+
+    .v-num {
+        min-width: 32px;
+        font-size: 12px;
+        padding-top: 4px;
+        color: var(--gray-400);
+        font-weight: 500;
+    }
+
+    .verse-row {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        border-radius: 10px;
+    }
+
+    .verse-row:active {
+        background: var(--gray-100);
+    }
+
+    /* Скрыть заголовок колонки на мобиле — показываем label сверху */
+    .column .col-header {
+        display: none;
+    }
+
+    /* ── ИИ ПАНЕЛЬ: полноэкранная ── */
+    .ai-panel {
+        width: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 52px;
+    }
+    .ai-panel.open {
+        transform: translateX(0);
+    }
+
+    /* ── НИЖНЯЯ НАВИГАЦИЯ ── */
+    .mobile-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 52px;
+        background: var(--surface);
+        border-top: 1px solid var(--gray-200);
+        z-index: 100;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .mobile-nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--gray-400);
+        transition: color 0.15s;
+        padding: 6px 0;
+    }
+    .mobile-nav-btn .icon { font-size: 20px; line-height: 1; }
+    .mobile-nav-btn.active { color: var(--blue); }
+    .mobile-nav-btn:active { color: var(--blue); }
+
+    /* Компенсация высоты нижней навигации — через bottom в fixed */
+    /* .content уже имеет bottom:0 — нижняя панель поверх него */
+
+    /* ── SIDEBAR: добавляем отступ снизу под нижнюю панель ── */
+    .sidebar {
+        padding-bottom: 52px;
+    }
+
+    /* Модальное окно — на весь экран */
+    .note-modal {
+        width: calc(100vw - 32px);
+    }
+
+    /* ── FULLSCREEN кнопка закрыть ── */
+    .fullscreen-close {
+        top: auto;
+        bottom: 68px;
+        right: 12px;
+    }
+
+    /* Скрыть скроллбар на мобилке */
+    ::-webkit-scrollbar { width: 0; height: 0; }
+
+    /* На мобиле кнопка схлопывания не нужна */
+    .sidebar-collapse-btn { display: none !important; }
+
+    /* Кнопка меню — по умолчанию видна только на мобиле */
+    .menu-btn { display: flex; }
+
+    /* На мобиле hover-кнопки не нужны — есть bottom sheet */
+    .verse-actions { display: none !important; }
+}
+
+/* На десктопе скрываем мобильные элементы */
+@media (min-width: 769px) {
+    .mobile-nav { display: none !important; }
+    .menu-btn { display: none !important; }
+    .sidebar-overlay { display: none !important; }
+    .sidebar-close-btn { display: none !important; }
+}
+
+/* Toast для новой версии */
+.version-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    right: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: none;
+    animation: slideUp 0.3s ease;
+    border-left: 4px solid #667eea;
+}
+
+.version-toast-content {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    gap: 12px;
+}
+
+.version-toast-icon {
+    font-size: 28px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.version-toast-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.version-toast-text strong {
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.version-toast-text span {
+    font-size: 13px;
+    color: var(--gray-500);
+    line-height: 1.4;
+}
+
+.version-toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--gray-400);
+    cursor: pointer;
+    padding: 8px;
+    transition: 0.15s;
+}
+.version-toast-close:hover { 
+    color: var(--red);
+    transform: scale(1.1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+    </style>
+</head>
+<body>
+
+<!-- Overlay для закрытия sidebar -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+            <h2>📖 Бібліотека <span class="version-badge">v2.0</span></h2>
+            <button class="sidebar-close-btn" onclick="closeSidebar()" title="Закрити">✕</button>
+        </div>
+        <div class="sub" id="loading-info">Ініціалізація…</div>
+        <div class="loading-bar" id="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="sidebar-section">
+        <span>Переклади</span>
+        <button class="import-btn" onclick="document.getElementById('local-file-input').click()" title="Завантажити з пристрою">
+            ＋ Імпорт
+        </button>
+        <input type="file" id="local-file-input" accept=".db,.sqlite,.sqlite3,.SQLite3" multiple style="display:none">
+    </div>
+    <div id="db-list" class="db-list"></div>
+
+    <div class="sidebar-section">
+        <span>⭐ Закладки</span>
+        <button class="import-btn" onclick="exportFavorites()" title="Экспорт закладок в файл">⬇ Експорт</button>
+    </div>
+    <div id="fav-list" class="fav-list">
+        <div class="fav-empty">Натисніть на номер вірша, щоб додати закладку</div>
+    </div>
+
+    <div class="sidebar-footer">
+        <button class="sidebar-cache-btn" onclick="clearAllCache()">
+            🗑 Очистити кеш перекладів
+        </button>
+    </div>
+</div>
+
+<div class="content">
+    <div class="topbar">
+        <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()" title="Меню">☰</button>
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" onclick="toggleSidebarDesktop()" title="Скрыть панель">⟨</button>
+        <div class="nav-group">
+            <select id="book-select" disabled><option value="">Оберіть книгу…</option></select>
+            <div class="divider-v"></div>
+            <button id="prev-btn" class="nav-btn" title="Предыдущая глава">‹</button>
+            <select id="chapter-select" disabled><option value="">Гл.</option></select>
+            <button id="next-btn" class="nav-btn" title="Следующая глава">›</button>
+            <select id="verse-select" disabled style="display:none"><option value="">Ст.</option></select>
+        </div>
+
+        <div class="font-size-control">
+            <button class="font-btn" id="font-dec">A−</button>
+            <span id="font-label">17px</span>
+            <button class="font-btn" id="font-inc">A+</button>
+        </div>
+
+        <button id="theme-toggle" class="theme-toggle" title="Темна/світла тема">◐</button>
+        <button class="ai-btn" id="ai-open-btn">✦ ИИ</button>
+        <button class="settings-btn" id="settings-open-btn" title="Налаштування">⚙️</button>
+
+        <div class="search-area">
+            <input type="text" id="search-input" placeholder="Пошук по тексту…">
+            <button id="search-btn" class="search-btn">Знайти</button>
+        </div>
+    </div>
+
+    <!-- ИИ Панель -->
+    <div class="ai-panel" id="ai-panel">
+        <div class="ai-panel-header">
+            <h3>✦ Біблійний помічник</h3>
+            <div class="ai-header-actions">
+                <button class="ai-clear-btn" onclick="clearAiHistory()" title="Очистити чат">🗑</button>
+                <button class="ai-close-btn" id="ai-close-btn">✕</button>
+            </div>
+        </div>
+        <div class="ai-actions">
+            <button class="ai-action-btn" id="btn-compare" onclick="aiAction('compare')">⚖️ Порівняти<br>переклади</button>
+            <button class="ai-action-btn" id="btn-parallel" onclick="aiAction('parallel')">🔗 Паралельні<br>місця</button>
+        </div>
+        <div class="ai-context" id="ai-context">Оберіть книгу та главу</div>
+        <div class="ai-messages" id="ai-messages"></div>
+        <div class="ai-input-area">
+            <input type="text" id="ai-input" placeholder="Задайте питання…">
+            <button class="ai-send-btn" id="ai-send-btn">➤</button>
+        </div>
+    </div>
+
+    <div id="mob-translation-label"></div>
+    <div id="carousel-dots"></div>
+    <div id="compare-grid">
+        <div class="empty-state">
+            <div class="icon">📖</div>
+            <p>Оберіть переклад зі списку зліва, потім відкрийте книгу та главу</p>
+        </div>
+    </div>
+</div>
+
+<!-- Нижняя навигация (только мобилка) -->
+<nav class="mobile-nav" id="mobile-nav">
+    <button class="mobile-nav-btn" id="mob-btn-books" onclick="toggleSidebar()">
+        <span class="icon">📚</span>Переклади
+    </button>
+    <button class="mobile-nav-btn" id="mob-btn-search" onclick="toggleMobileSearch()">
+        <span class="icon">🔍</span>Пошук
+    </button>
+    <button class="mobile-nav-btn" id="mob-btn-ai" onclick="document.getElementById('ai-open-btn').click()">
+        <span class="icon">✦</span>ИИ
+    </button>
+    <button class="mobile-nav-btn" id="mob-btn-font" onclick="toggleMobileFont()">
+        <span class="icon">Aa</span>Шрифт
+    </button>
+    <button class="mobile-nav-btn" id="mob-btn-settings" onclick="openSettings()">
+        <span class="icon">⚙️</span>Налаштування
+    </button>
+</nav>
+
+<!-- Мобильная панель шрифта (над нижней панелью) -->
+<div id="mobile-font-bar" class="font-bar">
+    <button class="font-bar-btn" onclick="setFontSize(fontSize-1)">−</button>
+    <span id="mob-font-label" class="font-bar-label">17px</span>
+    <button class="font-bar-btn" onclick="setFontSize(fontSize+1)">+</button>
+    <button class="font-bar-close" onclick="toggleMobileFont()">✕</button>
+</div>
+
+<!-- Мобильная панель поиска (появляется над нижней панелью) -->
+<div id="mobile-search-bar" class="search-bar-mobile">
+    <input type="text" id="mob-search-input" class="search-bar-input" placeholder="Пошук по тексту…">
+    <button class="search-bar-submit" onclick="doMobileSearch()">Знайти</button>
+    <button class="search-bar-close" onclick="closeMobileSearch()">✕</button>
+</div>
+
+<!-- Модальное окно настроек -->
+<div class="settings-overlay" id="settings-overlay" onclick="if(event.target===this) closeSettings()">
+    <div class="settings-modal">
+        <div class="settings-header">
+            <h2>⚙️ Налаштування</h2>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <button class="settings-help-btn" onclick="closeSettings(); openHelp()" title="Довідка">❓ Довідка</button>
+                <button class="settings-close-btn" onclick="closeSettings()">✕</button>
+            </div>
+        </div>
+        <div class="settings-body">
+
+            <!-- ─── ИИ ПОМОЩНИК ─── -->
+            <div class="settings-group">
+                <div class="settings-group-title">
+                    <span class="settings-group-icon settings-icon-ai">✦</span>
+                    ИИ Помощник
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Модель</strong>
+                        <span id="model-desc">Вибір моделі ІІ</span>
+                    </div>
+                    <select id="setting-ai-model" onchange="saveSettings(); updateModelDesc()" style="
+                        border: 1px solid var(--gray-300); border-radius: 8px;
+                        padding: 6px 10px; font-size: 12px; font-weight: 600;
+                        color: var(--text); background: var(--surface);
+                        cursor: pointer; min-width: 160px;
+                    ">
+                        <optgroup label="⚡ Швидкі">
+                            <option value="llama-3.1-8b-instant">Llama 3.1 8B — швидка</option>
+                            <option value="llama-3.3-70b-versatile" selected>Llama 3.3 70B — збалансована</option>
+                        </optgroup>
+                        <optgroup label="🧠 Розумні">
+                            <option value="meta-llama/llama-4-maverick-17b-128e-instruct">Llama 4 Maverick 17B</option>
+                            <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B</option>
+                            <option value="moonshotai/kimi-k2-instruct-0905">Kimi K2</option>
+                            <option value="qwen/qwen-3-32b">Qwen 3 32B</option>
+                        </optgroup>
+                        <optgroup label="🔍 Reasoning">
+                            <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 70B</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="settings-divider"></div>
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Пам'ятати контекст розмови</strong>
+                        <span>ІІ бачить попередні повідомлення і відповідає з урахуванням них</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="setting-ai-context" onchange="saveSettings()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ─── ВНЕШНИЙ ВИД ─── -->
+            <div class="settings-group">
+                <div class="settings-group-title">
+                    <span class="settings-group-icon settings-icon-ui">◐</span>
+                    Внешний вид
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Тема оформлення</strong>
+                        <span>Світла або темна</span>
+                    </div>
+                    <div class="theme-picker">
+                        <button id="theme-light-btn" onclick="applyTheme('light')">☀️ Світла</button>
+                        <button id="theme-dark-btn" onclick="applyTheme('dark')">🌙 Темна</button>
+                    </div>
+                </div>
+                <div class="settings-divider"></div>
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Розмір шрифту</strong>
+                        <span id="settings-font-desc">Розмір тексту в читалці</span>
+                    </div>
+                    <div class="font-stepper">
+                        <button onclick="setFontSize(fontSize-1)">−</button>
+                        <span id="settings-font-label">17px</span>
+                        <button onclick="setFontSize(fontSize+1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── ДАННЫЕ ─── -->
+            <div class="settings-group">
+                <div class="settings-group-title">
+                    <span class="settings-group-icon settings-icon-data">💾</span>
+                    Дані та кеш
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Кеш перекладів</strong>
+                        <span>Переклади збережені локально для офлайн-доступу</span>
+                    </div>
+                    <button class="settings-action-btn" onclick="clearAllCache()">🗑 Очистити</button>
+                </div>
+                <div class="settings-divider"></div>
+                <div class="settings-row">
+                    <div class="settings-row-label">
+                        <strong>Історія чату ІІ</strong>
+                        <span>Діалоги з помічником зберігаються між сесіями</span>
+                    </div>
+                    <button class="settings-action-btn" onclick="clearAiHistory()">🗑 Очистити</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно заметки -->
+<div class="note-modal-overlay" id="note-modal-overlay">
+    <div class="note-modal">
+        <h3 id="note-modal-title">Нотатка до закладки</h3>
+        <textarea id="note-input" placeholder="Напишіть нотатку…"></textarea>
+        <div class="note-modal-btns">
+            <button class="note-cancel-btn" onclick="closeNoteModal()">Скасувати</button>
+            <button class="note-save-btn" onclick="saveNote()">Зберегти</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast уведомление о новой версии -->
+<div class="version-toast" id="version-toast">
+    <div class="version-toast-content">
+        <span class="version-toast-icon">✨</span>
+        <div class="version-toast-text">
+            <strong>Бібліотека Біблії v2.0</strong>
+            <span>Нові функції: ІІ-помічник, нотатки, покращена навігація</span>
+        </div>
+        <button class="version-toast-close" onclick="closeVersionToast()">✕</button>
+    </div>
+</div>
+
+<script>
+// --- КОНФИГУРАЦИЯ ---
+const user = "christian-word"; 
+const repo = "my-bible-app"; 
+const folder = "databases";
+
+let SQL_ENGINE = null;
+let loadedDbs = {};   // Хранилище объектов БД
+let dbSchemas = {};   // Хранилище определенных структур (таблицы, колонки)
+let dbMeta = {};      // Хранилище метаданных (описания переводов)
+let favorites = [];   // Список закладок
+
+// Элементы интерфейса
+const dbList = document.getElementById('db-list');
+const favList = document.getElementById('fav-list');
+const bookSelect = document.getElementById('book-select');
+const chapterSelect = document.getElementById('chapter-select');
+const grid = document.getElementById('compare-grid');
+const searchInput = document.getElementById('search-input');
+
+// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+
+// Очистка текста от тегов и лишних цифр
+function cleanText(text) {
+    if (!text) return "";
+    // 1. Убираем XML/HTML теги типа <J>, <f>...</f>
+    // 2. Убираем цифры (номера стихов внутри текста)
+    // 3. Убираем двойные пробелы
+    return text.replace(/<[^>]*>/g, '')
+               .replace(/\d+/g, '')
+               .replace(/\s\s+/g, ' ')
+               .trim();
+}
+
+// Сохранение состояния (какие базы открыты, какая глава)
+function saveState() {
+    const state = {
+        loadedFiles: Object.keys(loadedDbs),
+        book: bookSelect.value,
+        chapter: chapterSelect.value,
+        scrollPosition: getCurrentScrollVerse(),
+        favorites: favorites
+    };
+    localStorage.setItem('bible_app_state', JSON.stringify(state));
+}
+
+// Восстановление после перезагрузки
+async function restoreState(allFiles) {
+    const saved = localStorage.getItem('bible_app_state');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    
+    favorites = state.favorites || [];
+    renderFavorites();
+
+    // Загружаем только те базы, что были открыты
+    for (const name of (state.loadedFiles || [])) {
+        const fileData = allFiles.find(f => f.name === name);
+        if (fileData) {
+            const btn = document.getElementById("btn-" + name.replace(/\./g, '_'));
+            await loadDatabase(fileData.download_url, fileData.name, btn, false);
+        }
+    }
+
+    if (state.book) {
+        bookSelect.value = state.book;
+        bookSelect.onchange(); 
+        if (state.chapter) {
+            chapterSelect.value = state.chapter;
+            render();
+            // Восстанавливаем позицию скролла
+            if (state.scrollPosition) {
+                setTimeout(() => scrollToVerse(state.scrollPosition), 300);
+            }
+        }
+    }
+}
+
+// --- РАБОТА С БАЗОЙ ДАННЫХ ---
+
+// ─── IndexedDB кэш ───
+const IDB_NAME = 'BibleLibraryCache';
+const IDB_STORE = 'databases';
+const IDB_VERSION = 1;
+let idbReady = null; // Promise<IDBDatabase>
+
+function openIDB() {
+    if (idbReady) return idbReady;
+    idbReady = new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = e => {
+            e.target.result.createObjectStore(IDB_STORE);
+        };
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror = e => reject(e.target.error);
+    });
+    return idbReady;
+}
+
+async function idbGet(key) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbSet(key, value) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        const req = tx.objectStore(IDB_STORE).put(value, key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbDelete(key) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        const req = tx.objectStore(IDB_STORE).delete(key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbKeys() {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).getAllKeys();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+// Возвращает размер кэша в МБ
+async function getCacheSize() {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const store = tx.objectStore(IDB_STORE);
+        let total = 0;
+        store.openCursor().onsuccess = e => {
+            const cursor = e.target.result;
+            if (cursor) {
+                total += cursor.value.byteLength || 0;
+                cursor.continue();
+            } else {
+                resolve((total / 1024 / 1024).toFixed(1));
+            }
+        };
+    });
+}
+
+// Инициализация SQL.js
+initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/${f}` }).then(res => {
+    SQL_ENGINE = res;
+    fetchFileList();
+});
+
+// Читаем описание перевода из метаданных БД
+function readDbMeta(db) {
+    const queries = [
+        "SELECT value FROM info WHERE name='description' LIMIT 1",
+        "SELECT value FROM info WHERE name='title' LIMIT 1",
+        "SELECT value FROM metadata WHERE key='description' LIMIT 1",
+        "SELECT value FROM metadata WHERE key='title' LIMIT 1",
+        "SELECT description FROM info LIMIT 1",
+    ];
+    for (const q of queries) {
+        try {
+            const res = db.exec(q);
+            if (res[0]?.values?.[0]?.[0]) return res[0].values[0][0];
+        } catch(e) {}
+    }
+    return '';
+}
+
+// Создаём HTML элемент db-item (двухстрочный)
+function createDbItem(fileName, isCached, description = '') {
+    const shortName = fileName.replace('.SQLite3', '').replace('.sqlite3', '').replace('.db', '');
+    const div = document.createElement('div');
+    div.className = 'db-item';
+    div.id = "btn-" + fileName.replace(/\./g, '_');
+    div.innerHTML = `
+        <div class="db-dot"></div>
+        <div class="db-item-text">
+            <div class="db-name-main">${shortName}</div>
+            ${description ? `<div class="db-description-sub">${description}</div>` : ''}
+        </div>
+        ${isCached ? '<span class="cache-badge" title="В кэше">💾</span>' : ''}
+    `;
+    return div;
+}
+
+// ─── ИМПОРТ ЛОКАЛЬНЫХ ФАЙЛОВ ───
+document.getElementById('local-file-input').addEventListener('change', async function(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    e.target.value = ''; // сбрасываем чтобы можно было выбрать тот же файл снова
+
+    for (const file of files) {
+        const fileName = file.name;
+
+        // Не дублируем если уже в списке
+        if (document.getElementById('btn-' + fileName.replace(/\./g, '_'))) {
+            continue;
+        }
+
+        const div = createDbItem(fileName, false, '');
+        div.classList.add('db-item-local');
+
+        // Читаем файл как ArrayBuffer
+        const buf = await file.arrayBuffer();
+
+        // Сохраняем в IndexedDB чтобы работало офлайн и при следующей сессии
+        try { await idbSet(fileName, buf); } catch(e) {}
+
+        div.onclick = () => loadDatabase(null, fileName, div, true);
+        dbList.appendChild(div);
+
+        // Сразу загружаем
+        loadDatabase(null, fileName, div, true);
+    }
+});
+
+async function fetchFileList() {
+    let cachedKeys = [];
+    try { cachedKeys = await idbKeys(); } catch(e) {}
+
+    try {
+        const resp = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/${folder}`);
+        const files = await resp.json();
+        const bibles = files.filter(f => f.name.endsWith('.SQLite3'));
+
+        dbList.innerHTML = '';
+        bibles.forEach(file => {
+            const isCached = cachedKeys.includes(file.name);
+            // Описание покажем после загрузки БД, пока пусто
+            const div = createDbItem(file.name, isCached, '');
+            div.onclick = () => loadDatabase(file.download_url, file.name, div, true);
+            dbList.appendChild(div);
+        });
+
+        updateCacheInfo();
+        restoreState(bibles);
+    } catch (e) {
+        console.warn("GitHub недоступен, работаем офлайн");
+        document.getElementById('loading-info').textContent = '📴 Офлайн-режим';
+        dbList.innerHTML = '';
+
+        for (const name of cachedKeys) {
+            const div = createDbItem(name, true, '');
+            div.onclick = () => loadDatabase(null, name, div, true);
+            dbList.appendChild(div);
+        }
+
+        const saved = localStorage.getItem('bible_app_state');
+        if (saved) {
+            const fakeFiles = cachedKeys.map(k => ({ name: k, download_url: null }));
+            restoreState(fakeFiles);
+        }
+    }
+}
+
+async function loadDatabase(url, fileName, element, userClicked) {
+    if (loadedDbs[fileName]) return;
+
+    if (element) element.classList.add('loading');
+    updateLoadingBar();
+
+    try {
+        let buf;
+
+        // 1. Пробуем взять из IndexedDB кэша
+        const cached = await idbGet(fileName);
+        if (cached) {
+            buf = cached;
+            console.log(`[Cache HIT] ${fileName}`);
+        } else if (url) {
+            // 2. Скачиваем с сети и сохраняем в кэш
+            console.log(`[Cache MISS] Скачиваю ${fileName}…`);
+            document.getElementById('loading-info').textContent = `⬇️ Завантажую ${fileName.replace('.SQLite3','')}…`;
+            const resp = await fetch(url);
+            buf = await resp.arrayBuffer();
+            // Сохраняем в IndexedDB
+            try {
+                await idbSet(fileName, buf);
+                console.log(`[Cache SET] ${fileName} сохранён`);
+                // Обновляем бейдж
+                if (element) {
+                    const badge = element.querySelector('.cache-badge');
+                    if (!badge) element.innerHTML += '<span class="cache-badge" title="В кэше">💾</span>';
+                }
+                updateCacheInfo();
+            } catch(e) {
+                console.warn('IndexedDB сохранение не удалось:', e);
+            }
+        } else {
+            throw new Error('Нет ни кэша, ни URL');
+        }
+
+        const db = new SQL_ENGINE.Database(new Uint8Array(buf));
+        loadedDbs[fileName] = db;
+
+        // --- ДЕТЕКТОР СТРУКТУРЫ ---
+        let schema = { table: 'verses', book: 'book_number', chapter: 'chapter', verse: 'verse', text: 'text' };
+        try {
+            const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table'");
+            const tableNames = tables[0].values.map(t => t[0].toLowerCase());
+            if (tableNames.includes('verses')) {
+                schema.table = 'verses';
+            } else if (tableNames.includes('bible')) {
+                schema.table = 'Bible';
+                schema.book = 'Book'; schema.chapter = 'Chapter'; schema.verse = 'Verse'; schema.text = 'Text';
+            }
+            const cols = db.exec(`PRAGMA table_info(${schema.table})`);
+            const colNames = cols[0].values.map(c => c[1].toLowerCase());
+            if (colNames.includes('book_number')) schema.book = 'book_number';
+            else if (colNames.includes('book')) schema.book = 'book';
+            if (colNames.includes('text')) schema.text = 'text';
+            else if (colNames.includes('content')) schema.text = 'content';
+        } catch (err) {
+            console.warn("Автодетект не сработал для " + fileName, err);
+        }
+        dbSchemas[fileName] = schema;
+
+        // Читаем метаданные и обновляем элемент в списке
+        if (element) {
+            element.classList.remove('loading');
+            element.classList.add('loaded');
+            const desc = readDbMeta(loadedDbs[fileName]);
+            dbMeta[fileName] = desc;  // сохраняем для карточек
+            const subEl = element.querySelector('.db-description-sub');
+            if (desc) {
+                if (subEl) {
+                    subEl.textContent = desc;
+                } else {
+                    const textEl = element.querySelector('.db-item-text');
+                    if (textEl) {
+                        const sub = document.createElement('div');
+                        sub.className = 'db-description-sub';
+                        sub.textContent = desc;
+                        textEl.appendChild(sub);
+                    }
+                }
+            }
+        }
+        updateSelectors();
+        updateLoadingBar();
+        if (bookSelect.value && chapterSelect.value) render();
+        if (userClicked) saveState();
+
+    } catch (e) {
+        console.error("Ошибка загрузки БД:", e);
+        document.getElementById('loading-info').textContent = '❌ Помилка завантаження';
+        if (element) element.classList.remove('loading');
+        updateLoadingBar();
+    }
+}
+
+// Удаление перевода из кэша
+// Очистить весь кэш
+async function clearAllCache() {
+    const keys = await idbKeys();
+    for (const k of keys) await idbDelete(k);
+    // Обновляем все бейджи
+    document.querySelectorAll('.cache-badge').forEach(b => b.remove());
+    updateCacheInfo();
+    alert('Кеш очищено.');
+}
+
+// Показываем размер кэша в заголовке sidebar
+async function updateCacheInfo() {
+    try {
+        const keys = await idbKeys();
+        const size = await getCacheSize();
+        const info = document.getElementById('loading-info');
+        if (keys.length > 0) {
+            info.textContent = `💾 Кеш: ${keys.length} пер. · ${size} МБ`;
+        }
+    } catch(e) {}
+}
+
+function closeDatabase(name) {
+    delete loadedDbs[name];
+    delete dbSchemas[name];
+    const btn = document.getElementById("btn-" + name.replace(/\./g, '_'));
+    if (btn) btn.classList.remove('loaded');
+    if (!Object.keys(loadedDbs).length) {
+        bookSelect.innerHTML = '<option value="">Оберіть книгу...</option>';
+        bookSelect.disabled = true;
+        chapterSelect.innerHTML = '<option value="">Глава</option>';
+        chapterSelect.disabled = true;
+    }
+    render();
+    saveState();
+}
+
+// --- НАВИГАЦИЯ ---
+
+function updateSelectors() {
+    // Собираем книги из всех переводов
+    const booksMap = new Map();    // id → name (объединение всех переводов)
+    const booksByDb = new Map();   // dbName → Set(bookIds)
+
+    Object.entries(loadedDbs).forEach(([dbName, db]) => {
+        const ids = new Set();
+        try {
+            const res = db.exec("SELECT book_number, long_name FROM books");
+            if (res[0]) res[0].values.forEach(([id, name]) => {
+                booksMap.set(id, name);
+                ids.add(id);
+            });
+        } catch(e) {}
+        booksByDb.set(dbName, ids);
+    });
+
+    const currentBook = bookSelect.value;
+    bookSelect.innerHTML = '<option value="">Оберіть книгу...</option>';
+
+    [...booksMap.entries()].sort((a,b) => a[0]-b[0]).forEach(([id, name]) => {
+        const opt = new Option(name, id);
+        // Если хотя бы в одном переводе книга отсутствует — помечаем
+        const missing = [...booksByDb.values()].some(ids => !ids.has(id));
+        if (missing) {
+            opt.className = 'book-unavailable';
+            opt.text = name + ' ⚠';
+            opt.title = 'Відсутня в деяких перекладах';
+        }
+        bookSelect.appendChild(opt);
+    });
+
+    bookSelect.value = currentBook;
+    bookSelect.disabled = false;
+}
+
+bookSelect.onchange = function() {
+    const bId = this.value;
+    chapterSelect.innerHTML = '<option value="">Глава</option>';
+    verseSelect.innerHTML = '<option value="">Ст.</option>';
+    verseSelect.style.display = 'none';
+    verseSelect.disabled = true;
+    if (!bId) return;
+
+    let maxChapters = 0;
+    Object.keys(loadedDbs).forEach(name => {
+        const s = dbSchemas[name];
+        try {
+            const res = loadedDbs[name].exec(`SELECT MAX(${s.chapter}) FROM ${s.table} WHERE ${s.book} = ${bId}`);
+            if (res[0]) maxChapters = Math.max(maxChapters, res[0].values[0][0]);
+        } catch(e) {}
+    });
+
+    for (let i = 1; i <= maxChapters; i++) {
+        chapterSelect.appendChild(new Option(i, i));
+    }
+    chapterSelect.disabled = false;
+};
+
+chapterSelect.onchange = () => { 
+    animateChapterChange();
+    render(); 
+    saveState(); 
+    updateVerseSelect(); 
+};
+
+// Анимация смены главы
+function animateChapterChange() {
+    if (!isMobile()) {
+        const columns = document.querySelectorAll('.column');
+        columns.forEach(col => {
+            col.style.animation = 'none';
+            col.offsetHeight; // форсируем reflow
+            col.style.animation = 'fadeInUp 0.3s ease';
+        });
+    }
+}
+
+// --- ВЫБОР СТИХА (только мобиле) ---
+const verseSelect = document.getElementById('verse-select');
+
+function updateVerseSelect() {
+    if (!isMobile()) return;
+    const bId = bookSelect.value;
+    const cId = chapterSelect.value;
+    verseSelect.innerHTML = '<option value="">Ст.</option>';
+    if (!bId || !cId) { verseSelect.style.display = 'none'; verseSelect.disabled = true; return; }
+
+    let maxVerse = 0;
+    Object.keys(loadedDbs).forEach(name => {
+        const s = dbSchemas[name];
+        try {
+            const res = loadedDbs[name].exec(`SELECT MAX(${s.verse}) FROM ${s.table} WHERE ${s.book}=${bId} AND ${s.chapter}=${cId}`);
+            if (res[0]) maxVerse = Math.max(maxVerse, res[0].values[0][0]);
+        } catch(e) {}
+    });
+
+    for (let i = 1; i <= maxVerse; i++) verseSelect.appendChild(new Option(i, i));
+    verseSelect.disabled = false;
+    verseSelect.style.display = '';
+}
+
+verseSelect.onchange = function() {
+    const v = this.value;
+    if (!v) return;
+    scrollToVerse(parseInt(v));
+};
+
+// --- ИСТОРИЯ НАВИГАЦИИ ---
+let navHistory = [];
+let navHistoryIndex = -1;
+
+function pushHistory(bId, cId) {
+    if (!bId || !cId) return;
+    const cur = navHistory[navHistoryIndex];
+    if (cur && cur.bId == bId && cur.cId == cId) return; // дубль
+    // Обрезаем «вперёд» при новом переходе
+    navHistory = navHistory.slice(0, navHistoryIndex + 1);
+    navHistory.push({ bId, cId });
+    if (navHistory.length > 50) navHistory.shift();
+    navHistoryIndex = navHistory.length - 1;
+}
+
+function goBack() {
+    if (navHistoryIndex <= 0) return;
+    navHistoryIndex--;
+    const { bId, cId } = navHistory[navHistoryIndex];
+    bookSelect.value = bId;
+    bookSelect.onchange();
+    chapterSelect.value = cId;
+    render();
+    updateVerseSelect();
+    // не пушим в историю при возврате
+}
+
+// Кнопки ‹ › — долгое нажатие = назад в истории
+document.getElementById('prev-btn').addEventListener('longpress', goBack);
+
+// --- СКРОЛЛ К СТИХУ ---
+function scrollToVerse(verseNum) {
+    const verses = document.querySelectorAll(`.verse-row[data-verse="${verseNum}"]`);
+    if (verses.length) {
+        verses[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Определяем текущий видимый стих (для запоминания позиции)
+function getCurrentScrollVerse() {
+    const verses = document.querySelectorAll('.verse-row[data-verse]');
+    const grid = document.getElementById('compare-grid');
+    const gridTop = grid.getBoundingClientRect().top;
+    for (const v of verses) {
+        const rect = v.getBoundingClientRect();
+        if (rect.top >= gridTop) return parseInt(v.dataset.verse);
+    }
+    return 1;
+}
+
+// Синхронный скролл при свайпе — восстанавливаем позицию после переключения перевода
+function syncScrollAfterSwipe() {
+    if (!isMobile()) return;
+    // Берём стих из первой (только что покинутой) колонки — нет, берём из активной
+    const activeVerses = document.querySelectorAll('#carousel-track .column .verses');
+    if (!activeVerses.length) return;
+    // Находим стих по позиции скролла предыдущей колонки
+    const prevScroll = _lastScrollTop || 0;
+    const newCol = activeVerses[carouselIndex];
+    if (newCol) newCol.scrollTop = prevScroll;
+}
+
+let _lastScrollTop = 0;
+
+// Сохраняем скролл при уходе со слайда
+function captureScrollBeforeSwipe() {
+    if (!carouselTrack) return;
+    const cols = carouselTrack.querySelectorAll('.column .verses');
+    if (cols[carouselIndex]) _lastScrollTop = cols[carouselIndex].scrollTop;
+}
+
+// Функции "Вперед" / "Назад"
+function changeChapter(step) {
+    let c = parseInt(chapterSelect.value) || 0;
+    let max = chapterSelect.options.length - 1;
+    if (c + step >= 1 && c + step <= max) {
+        chapterSelect.value = c + step;
+        pushHistory(bookSelect.value, chapterSelect.value);
+        render();
+        updateVerseSelect();
+        saveState();
+    }
+}
+document.getElementById('prev-btn').onclick = () => changeChapter(-1);
+document.getElementById('next-btn').onclick = () => changeChapter(1);
+
+// Долгое нажатие на ‹ = назад в истории
+let _prevBtnTimer = null;
+document.getElementById('prev-btn').addEventListener('touchstart', () => {
+    _prevBtnTimer = setTimeout(() => { goBack(); _prevBtnTimer = null; }, 600);
+}, { passive: true });
+document.getElementById('prev-btn').addEventListener('touchend', () => {
+    if (_prevBtnTimer) { clearTimeout(_prevBtnTimer); _prevBtnTimer = null; }
+}, { passive: true });
+
+// Прямой переход (из поиска или закладок)
+window.goToContext = function(bId, cId) {
+    if (!Object.keys(loadedDbs).length) {
+        alert('Спочатку завантажте хоча б один переклад зі списку зліва.');
+        return;
+    }
+    pushHistory(bookSelect.value, chapterSelect.value);
+    bookSelect.value = bId;
+    // Ждём один микротаск — chapterSelect заполняется синхронно в onchange,
+    // затем сразу читаем результат без магической задержки
+    const onDone = () => {
+        chapterSelect.value = cId;
+        render();
+        updateVerseSelect();
+        saveState();
+        pushHistory(bId, cId);
+    };
+    // onchange заполняет chapterSelect синхронно — вызываем и сразу продолжаем
+    bookSelect.onchange();
+    onDone();
+};
+
+// --- ОТРИСОВКА ТЕКСТА ---
+
+// ─── ЕДИНАЯ ПРОВЕРКА НЕСООТВЕТСТВИЯ КНИГ ───
+// Сравнивает количество глав данного перевода с остальными.
+// Возвращает { mismatch, actualName, thisChapters, refChapters }
+function checkBookMismatch(dbName, bId) {
+    const result = { mismatch: false, actualName: '', thisChapters: 0, refChapters: 0 };
+    if (Object.keys(loadedDbs).length < 2) return result; // нечего сравнивать
+    try {
+        const s = dbSchemas[dbName];
+        const r = loadedDbs[dbName].exec(`SELECT MAX(${s.chapter}) FROM ${s.table} WHERE ${s.book}=${bId}`);
+        result.thisChapters = r[0]?.values?.[0]?.[0] || 0;
+
+        let refMax = 0;
+        Object.entries(loadedDbs).forEach(([otherName, otherDb]) => {
+            if (otherName === dbName) return;
+            try {
+                const os = dbSchemas[otherName];
+                const or = otherDb.exec(`SELECT MAX(${os.chapter}) FROM ${os.table} WHERE ${os.book}=${bId}`);
+                const m = or[0]?.values?.[0]?.[0] || 0;
+                if (m > refMax) refMax = m;
+            } catch(e) {}
+        });
+        result.refChapters = refMax;
+
+        if (refMax > 0 && result.thisChapters > 0 && Math.abs(result.thisChapters - refMax) > 3) {
+            const br = loadedDbs[dbName].exec(`SELECT long_name FROM books WHERE book_number=${bId} LIMIT 1`);
+            result.actualName = br[0]?.values?.[0]?.[0] || `book_number=${bId}`;
+            result.mismatch = true;
+        }
+    } catch(e) {}
+    return result;
+}
+
+function render() {
+    const bId = bookSelect.value;
+    const cId = chapterSelect.value;
+
+    if (!Object.keys(loadedDbs).length) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📚</div>
+                <p>Оберіть переклад зі списку зліва, потім відкрийте книгу та главу</p>
+            </div>`;
+        return;
+    }
+
+    if (!bId) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📖</div>
+                <p>Оберіть книгу у верхній панелі</p>
+            </div>`;
+        return;
+    }
+
+    if (!cId) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">🔢</div>
+                <p>Оберіть главу для читання</p>
+            </div>`;
+        return;
+    }
+
+    pushHistory(bId, cId);
+    const bName = bookSelect.options[bookSelect.selectedIndex].text;
+
+    // Строим весь grid через один DocumentFragment — один reflow вместо N
+    const gridFrag = document.createDocumentFragment();
+    // Кешируем все .verses для синхронного скролла — не querySelectorAll на каждый scroll
+    const verseDivs = [];
+
+    Object.keys(loadedDbs).forEach(name => {
+        const s = dbSchemas[name];
+        const shortName = name.replace('.SQLite3','').replace('.sqlite3','').replace('.db','');
+        const desc = dbMeta[name] || '';
+
+        // Заголовок колонки
+        const col = document.createElement('div');
+        col.className = 'column';
+
+        const header = document.createElement('div');
+        header.className = 'col-header';
+
+        const headerLeft = document.createElement('div');
+        headerLeft.className = 'col-header-left';
+        headerLeft.innerHTML = `<div class="col-title">${shortName}</div>${desc ? `<div class="col-subtitle">${desc}</div>` : ''}`;
+
+        const headerRight = document.createElement('div');
+        headerRight.className = 'col-header-right';
+        const expandBtn = document.createElement('button');
+        expandBtn.className = 'expand-btn';
+        expandBtn.title = 'Развернуть';
+        expandBtn.textContent = '⛶';
+        expandBtn.onclick = function() { toggleFullscreen(this); };
+        const closeBtn = document.createElement('span');
+        closeBtn.className = 'close-col';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.onclick = () => closeDatabase(name);
+        headerRight.append(expandBtn, closeBtn);
+        header.append(headerLeft, headerRight);
+
+        // Контейнер стихов
+        const vDiv = document.createElement('div');
+        vDiv.className = 'verses';
+        verseDivs.push(vDiv);
+
+        try {
+            const res = loadedDbs[name].exec(
+                `SELECT ${s.verse}, ${s.text} FROM ${s.table} WHERE ${s.book}=${bId} AND ${s.chapter}=${cId} ORDER BY ${s.verse}`
+            );
+
+            if (res[0] && res[0].values.length > 0) {
+                // DocumentFragment для стихов — один appendChild в конце
+                const frag = document.createDocumentFragment();
+                res[0].values.forEach(row => {
+                    const vRow = document.createElement('div');
+                    vRow.className = 'verse-row';
+                    vRow.dataset.verse = row[0];
+
+                    const verseRef = `${bName} ${cId}:${row[0]}`;
+                    const verseText = cleanText(row[1]);
+
+                    const numEl = document.createElement('div');
+                    numEl.className = 'v-num';
+                    numEl.textContent = row[0];
+
+                    const textEl = document.createElement('span');
+                    textEl.className = 'v-text';
+                    textEl.textContent = verseText;
+
+                    // Кнопки действий (десктоп — появляются при hover)
+                    const actionsEl = document.createElement('div');
+                    actionsEl.className = 'verse-actions';
+                    actionsEl.innerHTML = `
+                        <button class="verse-action-btn add-bookmark" title="Додати закладку">🔖</button>
+                        <button class="verse-action-btn ai-ask" title="Обговорити з ІІ">💬</button>
+                    `;
+                    actionsEl.querySelector('.add-bookmark').onclick = (e) => {
+                        e.stopPropagation();
+                        toggleFavorite(bId, bName, cId, row[0], verseText);
+                        showToast('🔖 Закладку додано');
+                    };
+                    actionsEl.querySelector('.ai-ask').onclick = (e) => {
+                        e.stopPropagation();
+                        askAIaboutVerse(verseRef, verseText);
+                    };
+
+                    // Долгое нажатие (мобиль) → bottom sheet
+                    let pressTimer = null;
+                    vRow.addEventListener('touchstart', () => {
+                        pressTimer = setTimeout(() => {
+                            openVerseSheet(bId, bName, cId, row[0], verseRef, verseText);
+                        }, 600);
+                    }, { passive: true });
+                    vRow.addEventListener('touchend', () => clearTimeout(pressTimer));
+                    vRow.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+                    vRow.append(numEl, textEl, actionsEl);
+                    frag.appendChild(vRow);
+                });
+                vDiv.appendChild(frag);
+            } else {
+                // Книгу не знайдено в этом переводе
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'render-missing';
+                const shortName = name.replace('.SQLite3','').replace('.sqlite3','').replace('.db','');
+                emptyDiv.innerHTML = `
+                    <div class="render-missing-icon">📕</div>
+                    <div class="render-missing-title">Книгу не знайдено</div>
+                    <div class="render-missing-text">«${bName}» відсутня в перекладі ${shortName}</div>
+                `;
+                vDiv.appendChild(emptyDiv);
+            }
+        } catch (err) {
+            const errDiv = document.createElement('div');
+            errDiv.className = 'render-error';
+            errDiv.textContent = `Помилка: ${err.message}`;
+            vDiv.appendChild(errDiv);
+        }
+
+        col.append(header, vDiv);
+
+        // Единая проверка несоответствия книги
+        const mis = checkBookMismatch(name, bId);
+        if (mis.mismatch) {
+            const banner = document.createElement('div');
+            banner.className = 'mismatch-banner';
+            banner.innerHTML = `⚠️ Можливо інша книга: у цьому перекладі «${mis.actualName}» (${mis.thisChapters} гл.), в інших — ${mis.refChapters} гл.`;
+            col.insertBefore(banner, vDiv);
+        }
+
+        gridFrag.appendChild(col);
+    });
+
+    // Один reflow — вставляем всё сразу
+    grid.innerHTML = '';
+    grid.appendChild(gridFrag);
+
+    // Синхронный скролл — используем кешированный массив verseDivs
+    verseDivs.forEach(vDiv => {
+        vDiv.onscroll = (e) => {
+            if (isMobile()) return;
+            verseDivs.forEach(el => {
+                if (el !== e.target) el.scrollTop = e.target.scrollTop;
+            });
+        };
+    });
+
+    // Event delegation для hover-подсветки — один обработчик на grid вместо N*2
+    grid.onmouseover = (e) => {
+        const row = e.target.closest('.verse-row');
+        if (!row) return;
+        const v = row.dataset.verse;
+        grid.querySelectorAll(`.verse-row[data-verse="${v}"]`).forEach(el => el.classList.add('highlighted'));
+    };
+    grid.onmouseout = (e) => {
+        const row = e.target.closest('.verse-row');
+        if (!row) return;
+        const v = row.dataset.verse;
+        grid.querySelectorAll(`.verse-row[data-verse="${v}"]`).forEach(el => el.classList.remove('highlighted'));
+    };
+}
+
+// --- ЗАКЛАДКИ (ИЗБРАННОЕ) ---
+
+let currentNoteId = null;
+
+function toggleFavorite(bId, bName, ch, vNum, verseText) {
+    const id = `${bId}-${ch}-${vNum}`;
+    if (favorites.some(f => f.id === id)) return;
+    // Берём первые 60 символов стиха как подсказку
+    const preview = verseText ? verseText.substring(0, 60).trimEnd() + (verseText.length > 60 ? '…' : '') : '';
+    favorites.push({ id, bId, bName, ch, vNum, note: '' });
+    renderFavorites();
+    saveState();
+    openNoteModal(id, preview);
+}
+
+function renderFavorites() {
+    favList.innerHTML = "";
+    if (!favorites.length) {
+        favList.innerHTML = '<div class="fav-empty">Натисніть на номер вірша, щоб додати закладку</div>';
+        return;
+    }
+    favorites.forEach(fav => {
+        const tag = document.createElement('div');
+        tag.className = 'fav-link';
+        tag.innerHTML = `
+            <div class="fav-link-top">
+                <span onclick="goToContext(${fav.bId}, ${fav.ch})">${fav.bName.substring(0,6)} ${fav.ch}:${fav.vNum}</span>
+                <button class="fav-note-btn" onclick="event.stopPropagation(); openNoteModal('${fav.id}')" title="Заметка">✏️</button>
+                <span class="fav-del" onclick="event.stopPropagation(); removeFavorite('${fav.id}')">&times;</span>
+            </div>
+            ${fav.note ? `<div class="fav-note-text">${fav.note}</div>` : ''}
+        `;
+        favList.appendChild(tag);
+    });
+}
+
+function openNoteModal(id, versePreview) {
+    currentNoteId = id;
+    const fav = favorites.find(f => f.id === id);
+    document.getElementById('note-modal-title').textContent = `Нотатка: ${fav.bName} ${fav.ch}:${fav.vNum}`;
+    const input = document.getElementById('note-input');
+    // Если заметка уже есть — показываем её, иначе подставляем текст стиха
+    input.value = fav.note || (versePreview || '');
+    document.getElementById('note-modal-overlay').classList.add('open');
+    setTimeout(() => { input.focus(); input.select(); }, 50);
+}
+
+function closeNoteModal() {
+    document.getElementById('note-modal-overlay').classList.remove('open');
+    currentNoteId = null;
+}
+
+function saveNote() {
+    const fav = favorites.find(f => f.id === currentNoteId);
+    if (fav) {
+        fav.note = document.getElementById('note-input').value.trim();
+        renderFavorites();
+        saveState();
+    }
+    closeNoteModal();
+}
+
+function removeFavorite(id) {
+    favorites = favorites.filter(f => f.id !== id);
+    renderFavorites();
+    saveState();
+}
+
+// Экспорт закладок в текстовый файл
+function exportFavorites() {
+    if (!favorites.length) {
+        showToast('❌ Немає закладок для експорту');
+        return;
+    }
+    const lines = favorites.map(f => {
+        const ref = `${f.bName} ${f.ch}:${f.vNum}`;
+        return f.note ? `${ref}\n  📝 ${f.note}` : ref;
+    });
+    const content = '📖 Закладки — Бібліотека Біблії\n' +
+        new Date().toLocaleDateString('ru') + '\n' +
+        '─'.repeat(40) + '\n\n' +
+        lines.join('\n\n');
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'закладки-біблія.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ Закладки експортовано');
+}
+
+// --- ПОИСК ---
+
+// Вспомогательная функция: получить названия книг для одной БД
+function getBookNames(dbName) {
+    const map = new Map();
+    try {
+        const res = loadedDbs[dbName].exec("SELECT book_number, long_name FROM books");
+        if (res[0]) res[0].values.forEach(([id, name]) => map.set(id, name));
+    } catch(e) {}
+    return map;
+}
+
+document.getElementById('search-btn').onclick = search;
+// Enter на десктопном инпуте
+document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') search();
+});
+
+function search() {
+    const query = searchInput.value.trim();
+    if (!query || query.length < 3) return;
+
+    grid.innerHTML = "";
+
+    // Кнопка «Назад к чтению»
+    const backBar = document.createElement('div');
+    backBar.style.cssText = `
+        position: sticky; top: 0; z-index: 10;
+        background: var(--blue-light); border-bottom: 1px solid var(--blue);
+        padding: 6px 16px; display: flex; align-items: center; gap: 10px;
+        font-size: 13px; color: var(--blue); font-weight: 600;
+        grid-column: 1 / -1;
+    `;
+    backBar.innerHTML = `
+        <span>🔍 Результаты поиска: «${query}»</span>
+        <button onclick="returnToReading()" style="
+            margin-left:auto; background: var(--blue); color:#fff; border:none;
+            border-radius:6px; padding:4px 12px; font-size:12px; font-weight:700;
+            cursor:pointer; transition:0.15s;
+        ">← Повернутись до читання</button>
+    `;
+    grid.appendChild(backBar);
+
+    const cols = [];
+
+    Object.keys(loadedDbs).forEach(name => {
+        const s = dbSchemas[name];
+        const bookNames = getBookNames(name);
+
+        const col = document.createElement('div');
+        col.className = 'column';
+        col.innerHTML = `<div class="col-header"><div class="col-header-left"><div class="col-title">🔍 ${name.replace('.SQLite3','').replace('.sqlite3','').replace('.db','')}</div></div></div>`;
+
+        const vDiv = document.createElement('div');
+        vDiv.className = 'verses';
+
+        try {
+            const res = loadedDbs[name].exec(`
+                SELECT ${s.book}, ${s.chapter}, ${s.verse}, ${s.text}
+                FROM ${s.table}
+                WHERE ${s.text} LIKE '%${query.replace(/'/g,"''")}%' LIMIT 50
+            `);
+
+            if (res[0] && res[0].values.length > 0) {
+                const frag = document.createDocumentFragment();
+                res[0].values.forEach(row => {
+                    const item = document.createElement('div');
+                    item.className = 'verse-row';
+                    item.style.cursor = "pointer";
+                    item.onclick = () => { returnToReading(row[0], row[1]); };
+
+                    const bookName = bookNames.get(row[0]) || `Кн. ${row[0]}`;
+                    const text = cleanText(row[3]).replace(
+                        new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+                        m => `<mark>${m}</mark>`
+                    );
+                    item.innerHTML = `
+                        <div class="v-num" style="min-width:56px;font-size:11px;line-height:1.4">
+                            ${bookName.substring(0,12)}<br>${row[1]}:${row[2]}
+                        </div>
+                        <span class="v-text">${text}</span>
+                    `;
+                    frag.appendChild(item);
+                });
+                vDiv.appendChild(frag);
+
+                // счётчик результатов
+                const counter = document.createElement('div');
+                counter.style.cssText = 'padding:8px 16px; font-size:12px; color:var(--gray-400); border-top:1px solid var(--gray-200); margin-top:4px;';
+                counter.textContent = `Знайдено: ${res[0].values.length}${res[0].values.length === 50 ? '+' : ''} віршів`;
+                vDiv.appendChild(counter);
+            } else {
+                vDiv.innerHTML = '<div style="padding:20px; color:var(--gray-400); text-align:center">😔 Ничего не найдено</div>';
+            }
+        } catch (e) { console.error(e); }
+
+        col.appendChild(vDiv);
+        cols.push(col);
+    });
+
+    if (!cols.length) {
+        grid.innerHTML += '<div class="empty-state"><div class="icon">🔍</div><p>Спочатку завантажте хоча б один переклад</p></div>';
+        return;
+    }
+
+    if (isMobile() && cols.length) {
+        carouselTrack = document.createElement('div');
+        carouselTrack.id = 'carousel-track';
+        cols.forEach(c => carouselTrack.appendChild(c));
+        grid.appendChild(carouselTrack);
+        updateCarousel(0);
+        attachSwipe();
+    } else {
+        cols.forEach(c => grid.appendChild(c));
+    }
+}
+
+// Вернуться к чтению (можно с переходом к конкретной книге/главе)
+function returnToReading(bId, cId) {
+    if (bId && cId) {
+        goToContext(bId, cId);
+    } else {
+        render();
+    }
+}
+
+// --- РАЗМЕР ШРИФТА ---
+let fontSize = 17;
+const fontLabel = document.getElementById('font-label');
+const vTextStyle = document.createElement('style');
+vTextStyle.id = 'vtext-size';
+document.head.appendChild(vTextStyle);
+function setFontSize(size) {
+    fontSize = Math.max(12, Math.min(28, size));
+    vTextStyle.textContent = '.v-text { font-size: ' + fontSize + 'px; }';
+    fontLabel.textContent = fontSize + 'px';
+    
+    // Обновляем лейблы в других местах
+    const sl = document.getElementById('settings-font-label');
+    if (sl) sl.textContent = fontSize + 'px';
+    const ml = document.getElementById('mob-font-label');
+    if (ml) ml.textContent = fontSize + 'px';
+    
+    localStorage.setItem('fontSize', fontSize);
+}
+document.getElementById('font-dec').onclick = () => setFontSize(fontSize - 1);
+document.getElementById('font-inc').onclick = () => setFontSize(fontSize + 1);
+const savedFont = parseInt(localStorage.getItem('fontSize'));
+if (savedFont) setFontSize(savedFont);
+
+// --- ТЁМНАЯ ТЕМА (десктоп кнопка) ---
+const themeBtn = document.getElementById('theme-toggle');
+themeBtn.onclick = () => {
+    const isDark = document.body.classList.contains('dark');
+    applyTheme(isDark ? 'light' : 'dark');
+};
+if (localStorage.getItem('darkTheme') === '1') applyTheme('dark');
+
+// --- ПОЛНОЭКРАННЫЙ РЕЖИМ ---
+let _fullscreenBtn = null;
+function toggleFullscreen(btn) {
+    const col = btn.closest('.column');
+    const isFullscreen = col.classList.toggle('fullscreen');
+    const closeBtn = document.getElementById('fullscreen-close');
+    if (isFullscreen) {
+        _fullscreenBtn = btn;
+        closeBtn.classList.add('visible');
+        document.onkeydown = (e) => { if (e.key === 'Escape') exitFullscreen(); };
+    } else {
+        closeBtn.classList.remove('visible');
+        document.onkeydown = null;
+        _fullscreenBtn = null;
+    }
+}
+function exitFullscreen() {
+    if (_fullscreenBtn) {
+        const col = _fullscreenBtn.closest('.column');
+        col.classList.remove('fullscreen');
+        document.getElementById('fullscreen-close').classList.remove('visible');
+        document.onkeydown = null;
+        _fullscreenBtn = null;
+    }
+}
+
+// --- МОБИЛЬНЫЕ ФУНКЦИИ ---
+
+function isMobile() { return window.innerWidth <= 768; }
+
+// ─── КАРУСЕЛЬ ПЕРЕВОДОВ ───
+let carouselIndex = 0;
+let carouselTrack = null;
+
+function updateCarousel(idx) {
+    if (!carouselTrack) return;
+    const cols = carouselTrack.querySelectorAll('.column');
+    if (!cols.length) return;
+    carouselIndex = Math.max(0, Math.min(idx, cols.length - 1));
+    carouselTrack.style.transform = `translateX(-${carouselIndex * 100}vw)`;
+
+    // Обновляем label с кнопкой закрытия
+    const label = document.getElementById('mob-translation-label');
+    const names = Object.keys(loadedDbs);
+    if (label && names.length) {
+        const name = names[carouselIndex] || '';
+        const displayName = name.replace('.SQLite3', '');
+        const counter = names.length > 1 ? `<span style="color:var(--gray-400);font-weight:400"> ${carouselIndex+1}/${names.length}</span>` : '';
+        label.innerHTML = `
+            <span style="flex:1;text-align:center;">${displayName}${counter}</span>
+            <button onclick="closeMobileTranslation('${name}')" title="Закрити переклад"
+                style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--gray-400);
+                       padding:0 4px;line-height:1;flex-shrink:0;transition:color 0.15s;"
+                onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-400)'">✕</button>
+        `;
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.padding = '4px 10px 4px 10px';
+    } else if (label) {
+        label.innerHTML = '';
+    }
+
+    renderDots();
+}
+
+function renderDots() {
+    const dotsEl = document.getElementById('carousel-dots');
+    if (!dotsEl) return;
+    const count = Object.keys(loadedDbs).length;
+    dotsEl.innerHTML = '';
+    if (count <= 1) return;
+    for (let i = 0; i < count; i++) {
+        const d = document.createElement('span');
+        d.className = 'carousel-dot' + (i === carouselIndex ? ' active' : '');
+        d.onclick = () => updateCarousel(i);
+        dotsEl.appendChild(d);
+    }
+}
+
+function attachSwipe() {
+    if (!isMobile()) return;
+    let startX = 0, startY = 0, isDragging = false;
+
+    // Убираем старые листенеры если были
+    grid.removeEventListener('touchstart', onTouchStart);
+    grid.removeEventListener('touchmove', onTouchMove);
+    grid.removeEventListener('touchend', onTouchEnd);
+
+    grid.addEventListener('touchstart', onTouchStart, { passive: true });
+    grid.addEventListener('touchmove', onTouchMove, { passive: false });
+    grid.addEventListener('touchend', onTouchEnd, { passive: true });
+}
+
+function onTouchStart(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = false;
+    captureScrollBeforeSwipe();
+}
+
+function onTouchMove(e) {
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    // Определяем направление — горизонталь или вертикаль
+    if (!isDragging && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) {
+        isDragging = true;
+    }
+    if (isDragging) {
+        e.preventDefault(); // блокируем вертикальный скролл страницы
+        if (carouselTrack) {
+            const offset = carouselIndex * window.innerWidth - dx;
+            carouselTrack.style.transition = 'none';
+            carouselTrack.style.transform = `translateX(-${offset}px)`;
+        }
+    }
+}
+
+function onTouchEnd(e) {
+    if (!isDragging) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (carouselTrack) carouselTrack.style.transition = '';
+    if (Math.abs(dx) > 50) {
+        if (dx < 0) updateCarousel(carouselIndex + 1);
+        else updateCarousel(carouselIndex - 1);
+        syncScrollAfterSwipe();
+    } else {
+        updateCarousel(carouselIndex); // snap back
+    }
+    isDragging = false;
+}
+
+// Перехватываем render() чтобы на мобиле перестраивать карусель
+const _origRender = render;
+window.render = function() {
+    _origRender();
+    if (isMobile()) {
+        // Обёртываем колонки в трек после рендера
+        const cols = [...grid.querySelectorAll('.column')];
+        if (cols.length) {
+            carouselTrack = document.createElement('div');
+            carouselTrack.id = 'carousel-track';
+            cols.forEach(c => carouselTrack.appendChild(c));
+            // Очищаем grid (кроме empty-state)
+            const empties = [...grid.querySelectorAll('.empty-state')];
+            grid.innerHTML = '';
+            empties.forEach(e => grid.appendChild(e));
+            grid.appendChild(carouselTrack);
+            updateCarousel(carouselIndex < cols.length ? carouselIndex : 0);
+            attachSwipe();
+        }
+        updateVerseSelect();
+    }
+};
+
+// Перехватываем closeDatabase() чтобы обновлять карусель
+const _origClose = window.closeDatabase;
+window.closeDatabase = function(name) {
+    _origClose(name);
+    if (isMobile()) {
+        carouselTrack = null;
+        carouselIndex = 0;
+    }
+};
+
+// ─── SIDEBAR ───
+
+// ─── Закрытие перевода на мобиле ───
+window.closeMobileTranslation = function(name) {
+    const newIndex = carouselIndex > 0 ? carouselIndex - 1 : 0;
+    carouselTrack = null;
+    carouselIndex = newIndex;
+    closeDatabase(name); // вызывает render() → перестраивает карусель
+};
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const isOpen = sidebar.classList.toggle('open');
+    overlay.classList.toggle('open', isOpen);
+    document.getElementById('mob-btn-books').classList.toggle('active', isOpen);
+}
+
+function toggleSidebarDesktop() {
+    const sidebar = document.getElementById('sidebar');
+    const btn = document.getElementById('sidebar-collapse-btn');
+    const collapsed = sidebar.classList.toggle('collapsed');
+    btn.classList.toggle('collapsed', collapsed);
+    btn.title = collapsed ? 'Показать панель' : 'Скрыть панель';
+}
+
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+    document.getElementById('mob-btn-books').classList.remove('active');
+}
+
+// ─── Мобильный поиск ───
+function toggleMobileSearch() {
+    const bar = document.getElementById('mobile-search-bar');
+    const isOpen = bar.classList.contains('open');
+    closeMobileFont();
+    bar.classList.toggle('open', !isOpen);
+    document.getElementById('mob-btn-search').classList.toggle('active', !isOpen);
+    if (!isOpen) setTimeout(() => document.getElementById('mob-search-input').focus(), 100);
+}
+function closeMobileSearch() {
+    document.getElementById('mobile-search-bar')?.classList.remove('open');
+    document.getElementById('mob-btn-search')?.classList.remove('active');
+}
+function doMobileSearch() {
+    const q = document.getElementById('mob-search-input').value.trim();
+    document.getElementById('search-input').value = q;
+    document.getElementById('search-btn').click();
+    closeMobileSearch();
+}
+document.getElementById('mob-search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doMobileSearch();
+});
+
+function toggleMobileFont() {
+    const bar = document.getElementById('mobile-font-bar');
+    const isOpen = bar.classList.contains('open');
+    closeMobileSearch();
+    bar.classList.toggle('open', !isOpen);
+    document.getElementById('mob-btn-font').classList.toggle('active', !isOpen);
+    syncMobFontLabel();
+}
+function closeMobileFont() {
+    document.getElementById('mobile-font-bar')?.classList.remove('open');
+    document.getElementById('mob-btn-font')?.classList.remove('active');
+}
+function syncMobFontLabel() {
+    const lbl = document.getElementById('mob-font-label');
+    if (lbl) lbl.textContent = fontSize + 'px';
+}
+
+document.getElementById('ai-close-btn').addEventListener('click', () => {
+    document.getElementById('mob-btn-ai').classList.remove('active');
+});
+document.getElementById('ai-open-btn').addEventListener('click', () => {
+    if (isMobile()) document.getElementById('mob-btn-ai').classList.add('active');
+});
+
+function updateLoadingBar() {
+    const total = document.querySelectorAll('.db-item').length;
+    const loading = document.querySelectorAll('.db-item.loading').length;
+    const bar = document.getElementById('loading-bar');
+    const fill = document.getElementById('loading-bar-fill');
+    const info = document.getElementById('loading-info');
+
+    if (loading > 0) {
+        bar.classList.add('active');
+        const loaded = document.querySelectorAll('.db-item.loaded').length;
+        const pct = total > 0 ? Math.round((loaded / total) * 100) : 0;
+        fill.style.width = pct + '%';
+        info.textContent = `Завантаження… ${loaded} з ${total}`;
+    } else {
+        bar.classList.remove('active');
+        const loaded = document.querySelectorAll('.db-item.loaded').length;
+        info.textContent = loaded > 0 ? `Завантажено: ${loaded}` : 'Готово';
+        fill.style.width = '100%';
+        setTimeout(() => { bar.classList.remove('active'); fill.style.width = '0%'; }, 800);
+    }
+}
+
+// Активная модель — берём из настроек или дефолт
+function getActiveModel() {
+    return appSettings.aiModel || "llama-3.3-70b-versatile";
+}
+
+const MODEL_DESCRIPTIONS = {
+    "llama-3.1-8b-instant":                        "Дуже швидка, легкі запити",
+    "llama-3.3-70b-versatile":                      "Збалансована швидкість і якість",
+    "meta-llama/llama-4-maverick-17b-128e-instruct":"Llama 4, довгий контекст",
+    "meta-llama/llama-4-scout-17b-16e-instruct":    "Llama 4, ефективна",
+    "moonshotai/kimi-k2-instruct-0905":             "Висока якість міркування",
+    "qwen/qwen-3-32b":                              "Qwen 3, сильна модель",
+    "deepseek-r1-distill-llama-70b":                "Reasoning, глибокий аналіз",
+};
+
+function updateModelDesc() {
+    const sel = document.getElementById('setting-ai-model');
+    const desc = document.getElementById('model-desc');
+    if (sel && desc) desc.textContent = MODEL_DESCRIPTIONS[sel.value] || 'Вибір моделі ІІ';
+}
+
+// --- НАСТРОЙКИ ---
+let appSettings = JSON.parse(localStorage.getItem('bible_app_settings') || '{}');
+
+function openSettings() {
+    document.getElementById('settings-overlay').classList.add('open');
+    syncSettingsUI();
+}
+function closeSettings() {
+    document.getElementById('settings-overlay').classList.remove('open');
+}
+
+// ─── СПРАВКА ───
+function openHelp() {
+    document.getElementById('help-overlay').classList.add('open');
+}
+function closeHelp() {
+    document.getElementById('help-overlay').classList.remove('open');
+}
+function switchHelpTab(tab, btn) {
+    document.querySelectorAll('.help-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('help-tab-features').style.display = tab === 'features' ? 'flex' : 'none';
+    document.getElementById('help-tab-howto').style.display = tab === 'howto' ? 'flex' : 'none';
+}
+function saveSettings() {
+    appSettings.aiContext = document.getElementById('setting-ai-context').checked;
+    appSettings.aiModel = document.getElementById('setting-ai-model').value;
+    localStorage.setItem('bible_app_settings', JSON.stringify(appSettings));
+}
+function syncSettingsUI() {
+    document.getElementById('setting-ai-context').checked = !!appSettings.aiContext;
+    const modelSel = document.getElementById('setting-ai-model');
+    if (modelSel && appSettings.aiModel) modelSel.value = appSettings.aiModel;
+    updateModelDesc();
+    const isDark = document.body.classList.contains('dark');
+    document.getElementById('theme-light-btn').classList.toggle('active', !isDark);
+    document.getElementById('theme-dark-btn').classList.toggle('active', isDark);
+    document.getElementById('settings-font-label').textContent = fontSize + 'px';
+}
+function applyTheme(mode) {
+    const isDark = mode === 'dark';
+    document.body.classList.toggle('dark', isDark);
+    document.getElementById('theme-toggle').textContent = isDark ? '◑' : '◐';
+    localStorage.setItem('darkTheme', isDark ? '1' : '');
+    const lightBtn = document.getElementById('theme-light-btn');
+    const darkBtn = document.getElementById('theme-dark-btn');
+    if (lightBtn) lightBtn.classList.toggle('active', !isDark);
+    if (darkBtn) darkBtn.classList.toggle('active', isDark);
+}
+
+document.getElementById('settings-open-btn').onclick = openSettings;
+
+// Инициализация настроек
+syncSettingsUI();
+
+// --- ИИ ПОМОЩНИК ---
+const GROQ_KEY = "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";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+const aiPanel = document.getElementById('ai-panel');
+const aiMessages = document.getElementById('ai-messages');
+const aiInput = document.getElementById('ai-input');
+const aiSendBtn = document.getElementById('ai-send-btn');
+const aiContext = document.getElementById('ai-context');
+
+document.getElementById('ai-open-btn').onclick = () => {
+    aiPanel.classList.add('open');
+    updateAiContext();
+};
+document.getElementById('ai-close-btn').onclick = () => aiPanel.classList.remove('open');
+
+function updateAiContext() {
+    const book = bookSelect.options[bookSelect.selectedIndex]?.text || '—';
+    const ch = chapterSelect.value || '—';
+    const translations = Object.keys(loadedDbs).map(n => n.replace('.SQLite3','')).join(', ') || '—';
+    aiContext.textContent = `📖 ${book} ${ch !== '—' ? 'гл. ' + ch : ''} | Переклади: ${translations}`;
+}
+
+function getVerseTexts() {
+    const bId = bookSelect.value;
+    const cId = chapterSelect.value;
+    if (!bId || !cId) return null;
+    const bName = bookSelect.options[bookSelect.selectedIndex].text;
+    let result = `Книга: ${bName}, Глава: ${cId}\n\n`;
+    // Ограничиваем до 5 переводов чтобы не превысить лимит токенов
+    const names = Object.keys(loadedDbs).slice(0, 5);
+    const total = Object.keys(loadedDbs).length;
+    if (total > 5) result += `(Показаны 5 з ${total} перекладів)\n\n`;
+    names.forEach(name => {
+        const s = dbSchemas[name];
+        try {
+            const res = loadedDbs[name].exec(`SELECT ${s.verse}, ${s.text} FROM ${s.table} WHERE ${s.book}=${bId} AND ${s.chapter}=${cId} ORDER BY ${s.verse} LIMIT 15`);
+            if (res[0]) {
+                result += `=== ${name.replace('.SQLite3','')} ===\n`;
+                res[0].values.forEach(row => { result += `${row[0]}. ${cleanText(row[1])}\n`; });
+                result += '\n';
+            }
+        } catch(e) {}
+    });
+    return result;
+}
+
+function aiAction(type) {
+    document.querySelectorAll('.ai-action-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + (type === 'compare' ? 'compare' : 'parallel')).classList.add('active');
+
+    const texts = getVerseTexts();
+    if (!texts) {
+        addMessage('assistant', 'Спочатку оберіть книгу та главу.');
+        return;
+    }
+    updateAiContext();
+
+    let prompt;
+    if (type === 'compare') {
+        prompt = `Ось текст тієї самої глави в різних перекладах Біблії:\n\n${texts}\nПроаналізуй ключові відмінності між перекладами: де використовуються різні слова, як це впливає на зміст, який переклад точніший і чому. Отвечай на русском языке, кратко и по существу.`;
+    } else {
+        prompt = `Ось текст глави з Біблії:\n\n${texts}\nЗнайди і перелічи паралельні місця — схожі вірші або теми в інших книгах Біблії. Для кожного паралельного місця вкажи посилання (книга, глава, вірш) і коротко поясни зв'язок. Відповідай українською.`;
+    }
+
+    sendToAI(prompt, type === 'compare' ? '⚖️ Порівнюю переклади…' : '🔗 Шукаю паралельні місця…');
+}
+
+function buildSystemPrompt() {
+    return `Ти біблійний помічник. Відповідай українською, коротко і по суті. Використовуй знання про Біблію, богослов'я і текстологію.
+
+Форматуй відповіді:
+- **жирний** для ключових слів і імен
+- *курсив* для цитат
+- - пункт для коротких списків
+- Біблійні посилання у форматі «Книга Глава:Вірш» (наприклад, Ів 3:16)`;
+}
+
+aiSendBtn.onclick = () => {
+    const q = aiInput.value.trim();
+    if (!q) return;
+    aiInput.value = '';
+    const texts = getVerseTexts();
+    const context = texts ? `Контекст — открытая глава:\n${texts}\n\n` : '';
+    sendToAI(context + `Вопрос пользователя: ${q}`, q);
+};
+
+aiInput.addEventListener('keydown', e => { if (e.key === 'Enter') aiSendBtn.click(); });
+
+// --- ИСТОРИЯ ДИАЛОГОВ ИИ ---
+let aiHistory = JSON.parse(localStorage.getItem('ai_chat_history') || '[]');
+
+function saveAiHistory() {
+    // Храним последние 60 сообщений
+    if (aiHistory.length > 60) aiHistory = aiHistory.slice(-60);
+    localStorage.setItem('ai_chat_history', JSON.stringify(aiHistory));
+}
+
+function restoreAiHistory() {
+    aiHistory.forEach(msg => renderMessage(msg.role, msg.text));
+}
+
+// Простой рендер markdown для ответов ИИ
+function renderMarkdown(text) {
+    return text
+        // Заголовки
+        .replace(/^### (.+)$/gm, '<h4 style="margin:10px 0 4px;font-size:14px;color:var(--blue)">$1</h4>')
+        .replace(/^## (.+)$/gm, '<h3 style="margin:12px 0 4px;font-size:15px;color:var(--blue)">$1</h3>')
+        // Библейские ссылки — ДО обработки жирного, чтобы **Іван 3:16** тоже выделялся
+        // Поддерживает: однословные (Іван), двухсловные (Пісня Соломона), с цифрой (2 Параліпоменон)
+        .replace(/(^|[\s(«"„*_])(\d\s+)?([А-ЯЁА-ЯЁЇІЄ][а-яёа-яёїіє'ʼ']+(?:\s+[А-ЯЁА-ЯЁЇІЄа-яёа-яёїіє'ʼ']+)*?\s+\d+:\d+(?:[–\-]\d+)?)/gm, '$1<span style="color:var(--blue);font-weight:600">$2$3</span>')
+        // Жирный и курсив
+        .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code style="background:var(--gray-100);padding:1px 5px;border-radius:3px;font-size:12px">$1</code>')
+        // Ненумерованные списки
+        .replace(/^[-•] (.+)$/gm, '<li style="margin:1px 0 1px 14px">$1</li>')
+        // Нумерованные списки
+        .replace(/^\d+\. (.+)$/gm, '<li style="margin:1px 0 1px 14px;list-style-type:decimal">$1</li>')
+        // Горизонтальные разделители
+        .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--gray-200);margin:10px 0">')
+        // Переносы строк
+        .replace(/\n\n/g, '<br>')
+        .replace(/\n/g, '<br>');
+}
+
+function renderMessage(role, text) {
+    const div = document.createElement('div');
+    div.className = `ai-message ${role}`;
+    if (role === 'assistant') {
+        div.innerHTML = renderMarkdown(text);
+    } else {
+        div.textContent = text;
+    }
+    aiMessages.appendChild(div);
+    aiMessages.scrollTop = aiMessages.scrollHeight;
+    return div;
+}
+
+function addMessage(role, text) {
+    const div = renderMessage(role, text);
+    if (role !== 'thinking') {
+        aiHistory.push({ role, text });
+        saveAiHistory();
+    }
+    return div;
+}
+
+// Восстанавливаем историю при загрузке
+restoreAiHistory();
+
+function clearAiHistory() {
+    aiHistory = [];
+    localStorage.removeItem('ai_chat_history');
+    aiMessages.innerHTML = '';
+}
+
+function addThinking() {
+    const div = document.createElement('div');
+    div.className = 'ai-message thinking';
+    div.innerHTML = '<div class="ai-dots"><span></span><span></span><span></span></div> Думаю…';
+    aiMessages.appendChild(div);
+    aiMessages.scrollTop = aiMessages.scrollHeight;
+    return div;
+}
+
+// ─── ДЕЙСТВИЯ СО СТИХОМ ───
+
+function showToast(msg) {
+    const t = document.getElementById('copy-toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function askAIaboutVerse(ref, text) {
+    const aiPanel = document.getElementById('ai-panel');
+    if (!aiPanel.classList.contains('open')) {
+        document.getElementById('ai-open-btn').click();
+    }
+
+    // Проверяем несоответствие по всем загруженным переводам
+    const bId = bookSelect.value;
+    const mismatches = Object.keys(loadedDbs)
+        .map(name => checkBookMismatch(name, bId))
+        .filter(m => m.mismatch);
+
+    const label = mismatches.length > 0
+        ? `⚠️ ${ref} (расхождение нумерации в ${mismatches.length} пер.)`
+        : `💬 ${ref}`;
+
+    const prompt = `Обсуди цей біблійний вірш — богословський зміст, контекст, зв'язок з іншими місцями Писання:\n\n${ref}\n«${text}»`;
+    setTimeout(() => sendToAI(prompt, label), aiPanel.classList.contains('open') ? 0 : 400);
+}
+
+// Мобильный bottom sheet
+let _sheet = {};
+
+function openVerseSheet(bId, bName, cId, vNum, ref, text) {
+    _sheet = { bId, bName, cId, vNum, ref, text };
+    document.getElementById('sheet-ref').textContent = ref;
+    document.getElementById('sheet-text').textContent = text;
+    document.getElementById('verse-sheet-overlay').classList.add('open');
+    document.getElementById('verse-sheet').classList.add('open');
+}
+function closeVerseSheet() {
+    document.getElementById('verse-sheet-overlay').classList.remove('open');
+    document.getElementById('verse-sheet').classList.remove('open');
+}
+function sheetBookmark() {
+    toggleFavorite(_sheet.bId, _sheet.bName, _sheet.cId, _sheet.vNum, _sheet.text);
+    showToast('🔖 Закладку додано');
+    closeVerseSheet();
+}
+function sheetAskAI() {
+    closeVerseSheet();
+    askAIaboutVerse(_sheet.ref, _sheet.text);
+}
+
+async function sendToAI(prompt, userLabel) {
+    addMessage('user', userLabel);
+    const thinking = addThinking();
+    aiSendBtn.disabled = true;
+
+    // Формируем массив messages — с историей или без
+    const systemMsg = { role: 'system', content: buildSystemPrompt() };
+    let messages;
+    if (appSettings.aiContext) {
+        // История + текущий вопрос в конце
+        const historyMsgs = aiHistory.slice(-20).map(m => ({ role: m.role, content: m.text }));
+        messages = [systemMsg, ...historyMsgs, { role: 'user', content: prompt }];
+    } else {
+        messages = [systemMsg, { role: 'user', content: prompt }];
+    }
+
+    try {
+        const resp = await fetch(GROQ_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_KEY}`
+            },
+            body: JSON.stringify({
+                model: getActiveModel(),
+                messages,
+                max_tokens: 1000,
+                temperature: 0.5
+            })
+        });
+        const data = await resp.json();
+        thinking.remove();
+        const answer = data.choices?.[0]?.message?.content || 'Нет ответа.';
+        addMessage('assistant', answer);
+    } catch(e) {
+        thinking.remove();
+        addMessage('assistant', 'Помилка з\'єднання. Перевірте інтернет.');
+    }
+    aiSendBtn.disabled = false;
+}
+
+// --- ПОКАЗ УВЕДОМЛЕНИЯ О НОВОЙ ВЕРСИИ ---
+function showVersionToast() {
+    const toast = document.getElementById('version-toast');
+    if (toast && !localStorage.getItem('v2.0_seen')) {
+        setTimeout(() => {
+            toast.style.display = 'block';
+        }, 1000);
+    }
+}
+
+function closeVersionToast() {
+    document.getElementById('version-toast').style.display = 'none';
+    localStorage.setItem('v2.0_seen', 'true');
+}
+
+// Вызов при загрузке
+showVersionToast();
+</script>
+
+<!-- Toast уведомление о копировании -->
+<div class="copy-toast" id="copy-toast">✓ Скопійовано</div>
+
+<!-- Мобильный bottom sheet для действий со стихом -->
+<div class="verse-sheet-overlay" id="verse-sheet-overlay" onclick="closeVerseSheet()"></div>
+<div class="verse-sheet" id="verse-sheet">
+    <div class="verse-sheet-handle"></div>
+    <div class="verse-sheet-ref" id="sheet-ref"></div>
+    <div class="verse-sheet-text" id="sheet-text"></div>
+    <div class="verse-sheet-actions">
+        <button class="verse-sheet-btn" onclick="sheetBookmark()">
+            <span class="btn-icon">🔖</span> Додати закладку
+        </button>
+        <button class="verse-sheet-btn" onclick="sheetAskAI()">
+            <span class="btn-icon">💬</span> Обговорити з ІІ
+        </button>
+    </div>
+</div>
+
+<!-- Модал справки -->
+<div class="settings-overlay" id="help-overlay" onclick="if(event.target===this) closeHelp()">
+    <div class="settings-modal help-modal">
+        <div class="settings-header">
+            <h2>❓ Довідка</h2>
+            <button class="settings-close-btn" onclick="closeHelp()">✕</button>
+        </div>
+
+        <!-- Вкладки -->
+        <div class="help-tabs">
+            <button class="help-tab active" onclick="switchHelpTab('features', this)">🗂 Можливості</button>
+            <button class="help-tab" onclick="switchHelpTab('howto', this)">📖 Як користуватись</button>
+        </div>
+
+        <!-- Вкладка: Можливості -->
+        <div class="help-body" id="help-tab-features">
+
+            <div class="help-section">
+                <div class="help-section-title">📚 Переклади</div>
+                <div class="help-item"><span class="help-icon">🌐</span><div><b>Онлайн-бібліотека</b> — оберіть переклади зі списку зліва, вони збережуться для офлайн-роботи</div></div>
+                <div class="help-item"><span class="help-icon">📁</span><div><b>Імпорт з пристрою</b> — кнопка «＋ Імпорт», формати .db, .sqlite, .sqlite3</div></div>
+                <div class="help-item"><span class="help-icon">📊</span><div><b>Паралельне читання</b> — кілька перекладів одночасно в колонках</div></div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">🔖 Закладки</div>
+                <div class="help-item"><span class="help-icon">🔖</span><div><b>Додати закладку</b> — наведи на вірш і натисни 🔖, на мобілі — довге натискання</div></div>
+                <div class="help-item"><span class="help-icon">✏️</span><div><b>Нотатки</b> — до кожної закладки можна додати особисту нотатку</div></div>
+                <div class="help-item"><span class="help-icon">⬇️</span><div><b>Експорт</b> — кнопка «⬇ Експорт» зберігає всі закладки з нотатками у файл</div></div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">✦ ІІ Помічник</div>
+                <div class="help-item"><span class="help-icon">💬</span><div><b>Обговорити вірш</b> — наведи на вірш і натисни 💬</div></div>
+                <div class="help-item"><span class="help-icon">⚖️</span><div><b>Порівняти переклади</b> — аналіз відмінностей між завантаженими перекладами</div></div>
+                <div class="help-item"><span class="help-icon">🔗</span><div><b>Паралельні місця</b> — пошук схожих віршів в інших книгах</div></div>
+                <div class="help-item"><span class="help-icon">🤖</span><div><b>Модель ІІ</b> — обирається в ⚙️ Налаштуваннях</div></div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">⚠️ Нумерація книг</div>
+                <div class="help-item"><span class="help-icon">⚠️</span><div>Якщо в колонці з'явився оранжевий банер — нумерація книг у цьому перекладі відрізняється від інших (протестантська, православна, католицька традиції)</div></div>
+            </div>
+
+        </div>
+
+        <!-- Вкладка: Як користуватись -->
+        <div class="help-body" id="help-tab-howto" style="display:none">
+
+            <div class="help-section">
+                <div class="help-section-title">🚀 Швидкий старт</div>
+                <div class="help-step"><span class="help-step-num">1</span><div>Відкрий панель <b>☰</b> і обери переклади зі списку</div></div>
+                <div class="help-step"><span class="help-step-num">2</span><div>Обери <b>книгу</b> і <b>главу</b> у верхній панелі</div></div>
+                <div class="help-step"><span class="help-step-num">3</span><div>Гортай глави кнопками <b>‹ ›</b> або свайпом на мобілі</div></div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">📱 Мобільний</div>
+                <div class="help-step"><span class="help-step-num">→</span><div><b>Нижня панель</b> — Переклади · Пошук · ІІ · Шрифт · Налаштування</div></div>
+                <div class="help-step"><span class="help-step-num">→</span><div><b>Свайп</b> ліво/право — перемикання між перекладами</div></div>
+                <div class="help-step"><span class="help-step-num">→</span><div><b>Довге натискання</b> на вірш — закладка або обговорення з ІІ</div></div>
+            </div>
+
+            <div class="help-section">
+                <div class="help-section-title">🖥 Десктоп</div>
+                <div class="help-step"><span class="help-step-num">→</span><div><b>Наведи на вірш</b> — з'являться кнопки 🔖 і 💬</div></div>
+                <div class="help-step"><span class="help-step-num">→</span><div><b>Кнопка ⛶</b> в заголовку колонки — розгорнути на весь екран</div></div>
+                <div class="help-step"><span class="help-step-num">→</span><div><b>Кнопка ⟨</b> — сховати/показати бокову панель</div></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Кнопка закрытия полноэкранного режима -->
+<div class="fullscreen-close" id="fullscreen-close" onclick="exitFullscreen()">✕ Вийти</div>
+
+</body>
+</html>
