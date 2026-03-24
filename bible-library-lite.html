@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Бібліотека Біблії — Lite</title>
-    <meta property="og:image" content="icoLite.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23667eea'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='Arial'%3E📖%3C/text%3E%3Ctext x='85' y='25' font-size='30' text-anchor='middle' fill='%23f093fb' font-family='Arial'%3E2%3C/text%3E%3C/svg%3E">
@@ -2637,10 +2636,24 @@ document.getElementById('prev-btn').addEventListener('longpress', goBack);
 
 // --- СКРОЛЛ К СТИХУ ---
 function scrollToVerse(verseNum) {
-    const verses = document.querySelectorAll(`.verse-row[data-verse="${verseNum}"]`);
-    if (verses.length) {
-        verses[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (isMobile() && carouselTrack) {
+        // На мобиле скроллим только внутри активной колонки карусели
+        const cols = carouselTrack.querySelectorAll('.column');
+        const activeCol = cols[carouselIndex];
+        if (activeCol) {
+            const vDiv = activeCol.querySelector('.verses');
+            const row = activeCol.querySelector(`.verse-row[data-verse="${verseNum}"]`);
+            if (row && vDiv) {
+                vDiv.scrollTo({ top: row.offsetTop - vDiv.offsetTop, behavior: 'smooth' });
+            }
+        }
+    } else {
+        // Десктоп — скроллим первую колонку (остальные синхронизируются)
+        const row = document.querySelector(`.verse-row[data-verse="${verseNum}"]`);
+        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    // Сбрасываем select обратно на placeholder чтобы можно было выбрать тот же стих повторно
+    verseSelect.value = '';
 }
 
 // Определяем текущий видимый стих (для запоминания позиции)
